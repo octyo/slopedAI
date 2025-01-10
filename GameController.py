@@ -32,15 +32,13 @@ class GameController:
         self.startTime = 0
         self.deathTime = 0
 
-
         # Other params
         self.windowSize = (512, 512)
         self.captureMultSize = 1.218
 
-
         self.driver = self.__start_browser(self.url)
         if debug: print("Browser started")
-        
+
         time.sleep(0.25)
 
         self.hwnd = None
@@ -52,7 +50,6 @@ class GameController:
         self.__setupScreenCapture()
 
         self.currentGameState = GameState.READY
-        
 
     def __start_browser(self, tab_url):
         options = webdriver.ChromeOptions()
@@ -86,11 +83,11 @@ class GameController:
         self.driver.execute_script(f'document.title = "{self.id}";')
         handles = self.__list_windows()
         # print(handles)
-        
+
         for hwnd, title in handles:
             if self.id in title:
                 return hwnd
-        
+
         return None
 
     def __setupScreenCapture(self):
@@ -125,14 +122,20 @@ class GameController:
         bmpstr = self.dataBitMap.GetBitmapBits(True)
         img = Image.frombuffer('RGB', (bmpinfo['bmWidth'], bmpinfo['bmHeight']), bmpstr, 'raw', 'BGRX', 0, 1)
         img = img.resize(self.windowSize)
-        
+
+        self.__updateGameState(img)
+
         return img
 
+    def getTimeAlive(self):
+        if (self.currentGameState != GameState.READY):
+            return None
+        return self.deathTime - self.startTime - 3
 
     ### Returns enum of the current game state
-    def updateGameState(self):
+    def __updateGameState(self, img = None):
         if (self.currentGameState == GameState.MIDGAME):
-            currentFrame = self.getFrame()
+            currentFrame = img if img is not None else self.getFrame()
             rightBottomPixel = currentFrame.getpixel((500,500))
 
             # print(rightBottomPixel)
@@ -151,7 +154,7 @@ class GameController:
 
         time.sleep(0.01)
         self.keyup(KEYS.ENTER)
-    
+
     def getNextFrame(self):
         pass
 
@@ -182,24 +185,28 @@ class GameController:
         win32gui.ReleaseDC(self.hwnd, self.wDC)
         win32gui.DeleteObject(self.dataBitMap.GetHandle())
 
+class doubleA:
+    def __init__(self, a1, a2):
+        self.a1 = a1
+        self.a2 = a2
+
 def main():
-
-    # # Multiple games test
-    # from concurrent.futures import ThreadPoolExecutor
-    # drivers = []
-    # with ThreadPoolExecutor(max_workers=len(tabs)) as executor:
-    #     futures = [executor.submit(start_browser, tab) for tab in tabs]
-
-    #     # Collect drivers as they are created
-    #     for future in futures:
-    #         drivers.append(future.result())
-
     # Single game test
-    game = GameController("SingleInstance", "http://localhost:58918/", True)
+    game = GameController("SingleInstance", "http://localhost:3000/", True)
 
     time.sleep(1)
     game.startGame()
     game.keydown(KEYS.LEFT)
+
+    a = [1,2,3,4,5]
+    a2 = ["a", "b"]
+
+    combinedA = [doubleA(1, None), doubleA(2, None)]
+
+    for a in combinedA:
+        a.a2 = a.a1 * 2   
+
+    print(combinedA)
 
     while True:
         # print("Frame")
@@ -207,7 +214,7 @@ def main():
         frame = game.getFrame()
         frame.putpixel((500, 500), (0,0,255))
         frame.save("screenshot_debug.png")
-        time.sleep(0.1)
+        time.sleep(0.01)
 
 
 if __name__ == "__main__":

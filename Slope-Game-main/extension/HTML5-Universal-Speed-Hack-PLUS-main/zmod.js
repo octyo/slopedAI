@@ -1,17 +1,34 @@
 let speedConfig = {
-  speed: 0.01,
-  cbSetIntervalChecked: true,
-  cbSetTimeoutChecked: true,
+  speed: 0,
   cbPerformanceNowChecked: true,
-  cbDateNowChecked: true,
   cbRequestAnimationFrameChecked: true,
 };
 
 const emptyFunction = () => {};
-
 const originalDateNow = Date.now;
-
 const originalRequestAnimationFrame = window.requestAnimationFrame;
+
+const originalPerformanceNow = window.performance.now.bind(
+  window.performance
+);
+
+
+(function () {
+    let performanceNowValue = null;
+    let previusPerformanceNowValue = null;
+    window.performance.now = () => {
+      const originalValue = originalPerformanceNow();
+      if (performanceNowValue) {
+        performanceNowValue +=
+          (originalValue - previusPerformanceNowValue) *
+          (speedConfig.cbPerformanceNowChecked ? speedConfig.speed : 1);
+      } else {
+        performanceNowValue = originalValue;
+      }
+      previusPerformanceNowValue = originalValue;
+      return Math.floor(performanceNowValue);
+    };
+  })();
 
 // requestAnimationFrame
 (function () {
@@ -19,6 +36,7 @@ const originalRequestAnimationFrame = window.requestAnimationFrame;
   let previusDateNowValue = null;
   const callbackFunctions = [];
   const callbackTick = [];
+  
   const newRequestAnimationFrame = (callback) => {
     return originalRequestAnimationFrame((timestamp) => {
       const originalValue = originalDateNow();
@@ -58,17 +76,17 @@ const originalRequestAnimationFrame = window.requestAnimationFrame;
         callbackTick[index] = tickFrame;
       } else {
         callback(dateNowValue_MathFloor);
+        console.log(dateNowValue_MathFloor)
       }
     });
   };
   window.requestAnimationFrame = newRequestAnimationFrame;
+  window.requestOneFrame = () => {
+    speedConfig.speed = 0.05
+
+    setTimeout(() => {
+      speedConfig.speed = 0
+    }, 10);
+  };
 })();
 
-window.addEventListener("message", (e) => {
-  if (e.data.command === "getSpeedConfig") {
-    window.postMessage({
-      command: "setSpeedConfig",
-      config: speedConfigNew,
-    });
-  }
-});
