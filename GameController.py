@@ -193,6 +193,7 @@ class doubleA:
 def main():
     # Single game test
     game = GameController("SingleInstance", "http://localhost:3000/", True)
+    # game = GameController("SingleInstance", "http://127.0.0.1:5500/Slope-Game-main/index.html", True)
 
     time.sleep(1)
     game.startGame()
@@ -210,7 +211,6 @@ def main():
 
     while True:
         # print("Frame")
-        game.updateGameState()
         frame = game.getFrame()
         frame.putpixel((500, 500), (0,0,255))
         frame.save("screenshot_debug.png")
