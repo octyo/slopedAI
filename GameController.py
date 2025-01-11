@@ -39,7 +39,7 @@ class GameController:
 
         # Other params
         self.windowSize = (512, 512)
-        self.captureScale = 1.22 # i have no idea where this 
+        self.captureScale = 1.22 # i have no idea where this comes from :/
 
         self.browserStartTime = time.time()
         self.driver = self.__start_browser(self.url)
@@ -225,10 +225,8 @@ class GameController:
         win32gui.ReleaseDC(self.hwnd, self.wDC)
         win32gui.DeleteObject(self.dataBitMap.GetHandle())
 
-def main():
-    # Single game test
-    game = GameController("SingleInstance", "http://localhost:50317/", True)
-    # game = GameController("SingleInstance", "http://127.0.0.1:5500/Slope-Game-main/index.html", True)
+def OtherThread(id: str):
+    game = GameController("SingleInstance", "http://localhost:57913/", True)
 
     time.sleep(1)
     game.startGame()
@@ -240,6 +238,38 @@ def main():
         frame.putpixel((500, 500), (0,0,255))
         frame.save("screenshot_debug.png")
         time.sleep(0.5)
+    return game
+
+def main():
+    # Single game test
+    game1 = GameController("SingleInstance1", "http://localhost:57913/", True)
+    game2 = GameController("SingleInstance2", "http://localhost:57913/", True)
+    # game = GameController("SingleInstance", "http://127.0.0.1:5500/Slope-Game-main/index.html", True)
+
+    time.sleep(1)
+    game1.startGame()
+    game1.keydown(KEYS.LEFT)
+    time.sleep(0.5)
+    game2.startGame()
+    game2.keydown(KEYS.LEFT)
+
+    while True:
+        # print("Frame")
+        frame = game1.getNextFrame()
+        frame = game2.getNextFrame()
+        time.sleep(0.5)
+
+
+    # from concurrent.futures import ThreadPoolExecutor
+    # drivers = []
+    # with ThreadPoolExecutor(max_workers=5) as executor:
+    #     futures = [executor.submit(OtherThread, i) for i in range(5)]
+
+    #     # Collect drivers as they are created
+    #     for future in futures:
+    #         drivers.append(future.result())
+
+    
 
 
 if __name__ == "__main__":
