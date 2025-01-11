@@ -21,6 +21,10 @@ class GameState(Enum):
     READY = "ready"
     MIDGAME = "in-progress"
 
+class GameMode(Enum):
+    Normal = "normal"
+    FrameMode = "frame-mode"
+
 class GameController:
     def __init__(self, id, url, debug = False):
         self.id = id
@@ -28,14 +32,16 @@ class GameController:
         self.debugging = debug
 
         # Defaults (DON'T CHANGE!)
+        self.currentGameMode = GameMode.Normal
         self.currentGameState = GameState.LOADING
         self.startTime = 0
         self.deathTime = 0
 
         # Other params
         self.windowSize = (512, 512)
-        self.captureMultSize = 1.218
+        self.captureScale = 1.22 # i have no idea where this 
 
+        self.browserStartTime = time.time()
         self.driver = self.__start_browser(self.url)
         if debug: print("Browser started")
 
@@ -49,7 +55,9 @@ class GameController:
 
         self.__setupScreenCapture()
 
+        while self.browserStartTime + 3 > time.time(): time.sleep(0.001) # Delay until 3 secs after browser started
         self.currentGameState = GameState.READY
+        self.__setGameMode(GameMode.FrameMode)
 
     def __start_browser(self, tab_url):
         options = webdriver.ChromeOptions()
@@ -95,8 +103,14 @@ class GameController:
         self.dcObj = win32ui.CreateDCFromHandle(self.wDC) 
         self.cDC = self.dcObj.CreateCompatibleDC()
 
+        rect = win32gui.GetWindowRect(self.hwnd)
+        x = rect[0]
+        y = rect[1]
+        w = rect[2] - x
+        h = rect[3] - y
+
         self.dataBitMap = win32ui.CreateBitmap()
-        self.dataBitMap.CreateCompatibleBitmap(self.dcObj, int(self.windowSize[0]*self.captureMultSize), int(self.windowSize[1]*self.captureMultSize))
+        self.dataBitMap.CreateCompatibleBitmap(self.dcObj, int(w*self.captureScale), int(h*self.captureScale))
         self.cDC.SelectObject(self.dataBitMap)
 
         self.paddings = {
@@ -108,11 +122,16 @@ class GameController:
     }
 
     def getFrame(self):
+        rect = win32gui.GetWindowRect(self.hwnd)
+        x = rect[0]
+        y = rect[1]
+        w = rect[2] - x
+        h = rect[3] - y
 
         # Copy the client area from the screen
         self.cDC.BitBlt(
             (0, 0), 
-            (int(self.windowSize[0]*self.captureMultSize), int(self.windowSize[1]*self.captureMultSize)),
+            (int(w * self.captureScale), int(h * self.captureScale)),
             self.dcObj, 
             (self.paddings["frame_width"]*2 + self.paddings["border_width"],0), 
             win32con.SRCCOPY
@@ -155,11 +174,32 @@ class GameController:
         time.sleep(0.01)
         self.keyup(KEYS.ENTER)
 
+        if self.currentGameMode is GameMode.FrameMode:
+            for i in range(3):
+                self.getNextFrame()
+
+    def __setGameMode(self, mode: GameMode) -> None:
+        if mode is GameMode.Normal:
+            self.driver.execute_script('setMode("normal")')
+        else:
+            self.driver.execute_script('setMode("frame")')
+            
+        self.currentGameMode = mode
+
     def getNextFrame(self):
-        pass
+        if self.currentGameMode is not GameMode.FrameMode:
+            print("[ERROR] Current gamemode set to FrameMode. Current mode: " + str(self.currentGameMode))
+            return None
+
+        self.driver.execute_script("requestOneFrame();")
+        return self.getFrame()
 
     def forceResetGame(self):
-        pass
+        self.driver.refresh()
+        self.currentGameMode = GameMode.Normal
+        self.currentGameState = GameState.LOADING
+        self.startTime = 0
+        self.deathTime = 0
 
     def __getVirtualKey(self, key):
         key_map = {
@@ -185,36 +225,21 @@ class GameController:
         win32gui.ReleaseDC(self.hwnd, self.wDC)
         win32gui.DeleteObject(self.dataBitMap.GetHandle())
 
-class doubleA:
-    def __init__(self, a1, a2):
-        self.a1 = a1
-        self.a2 = a2
-
 def main():
     # Single game test
-    game = GameController("SingleInstance", "http://localhost:3000/", True)
+    game = GameController("SingleInstance", "http://localhost:50317/", True)
     # game = GameController("SingleInstance", "http://127.0.0.1:5500/Slope-Game-main/index.html", True)
 
     time.sleep(1)
     game.startGame()
     game.keydown(KEYS.LEFT)
 
-    a = [1,2,3,4,5]
-    a2 = ["a", "b"]
-
-    combinedA = [doubleA(1, None), doubleA(2, None)]
-
-    for a in combinedA:
-        a.a2 = a.a1 * 2   
-
-    print(combinedA)
-
     while True:
         # print("Frame")
-        frame = game.getFrame()
+        frame = game.getNextFrame()
         frame.putpixel((500, 500), (0,0,255))
         frame.save("screenshot_debug.png")
-        time.sleep(0.01)
+        time.sleep(0.5)
 
 
 if __name__ == "__main__":
