@@ -235,15 +235,6 @@ class GameController:
         seleniumKey = self.__getSeleniumVirtualKey(key)
         self.actionChain.key_up(seleniumKey).perform()
 
-    def __del__(self):
-        return
-        self.driver.quit()
-
-        self.dcObj.DeleteDC()
-        self.cDC.DeleteDC()
-        win32gui.ReleaseDC(self.hwnd, self.wDC)
-        win32gui.DeleteObject(self.dataBitMap.GetHandle())
-
 async def GameThread():
     # Single game test
     game1 = GameController("SingleInstance1", "http://localhost:55149/", True)
