@@ -1,5 +1,7 @@
 import time
 from selenium import webdriver
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 from PIL import Image
 import io
 import numpy as np
@@ -7,8 +9,10 @@ import win32gui
 import win32ui
 import win32con
 import win32api
+import win32process
 import cv2
 from enum import Enum
+import asyncio
 
 class KEYS(Enum):
     NONE = 0
@@ -43,6 +47,9 @@ class GameController:
 
         self.browserStartTime = time.time()
         self.driver = self.__start_browser(self.url)
+        self.actionChain = ActionChains(self.driver)
+        gameContainer = self.driver.find_element(value="gameContainer")
+        self.actionChain.click(gameContainer).perform()
         if debug: print("Browser started")
 
         time.sleep(0.25)
@@ -167,11 +174,14 @@ class GameController:
                     print(f"Survived {self.deathTime - self.startTime} seconds")
 
     def startGame(self):
+        if self.debugging:
+            print("Started game: " + str(self.id))
+
         self.keydown(KEYS.ENTER)
         self.startTime = time.time()
         self.currentGameState = GameState.MIDGAME
 
-        time.sleep(0.01)
+        time.sleep(0.1)
         self.keyup(KEYS.ENTER)
 
         if self.currentGameMode is GameMode.FrameMode:
@@ -208,16 +218,25 @@ class GameController:
             KEYS.ENTER: 0x0D, # Enter key
         }
         return key_map.get(key, None)  # Return None if the key is not found
+    
+    def __getSeleniumVirtualKey(self, key):
+        key_map = {
+            KEYS.LEFT: 'a',  # 'A' key
+            KEYS.RIGHT: 'd', # 'D' key
+            KEYS.ENTER: Keys.ENTER, # Enter key
+        }
+        return key_map.get(key, None)  # Return None if the key is not found
 
     def keydown(self, key: KEYS) -> None:
-        virtualKey = self.__getVirtualKey(key)
-        win32gui.SendMessage(self.hwnd, win32con.WM_KEYDOWN, virtualKey, 0)
+        seleniumKey = self.__getSeleniumVirtualKey(key)
+        self.actionChain.key_down(seleniumKey).perform()
 
     def keyup(self, key):
-        virtualKey = self.__getVirtualKey(key)
-        win32gui.SendMessage(self.hwnd, win32con.WM_KEYUP, virtualKey, 0)
+        seleniumKey = self.__getSeleniumVirtualKey(key)
+        self.actionChain.key_up(seleniumKey).perform()
 
     def __del__(self):
+        return
         self.driver.quit()
 
         self.dcObj.DeleteDC()
@@ -225,31 +244,16 @@ class GameController:
         win32gui.ReleaseDC(self.hwnd, self.wDC)
         win32gui.DeleteObject(self.dataBitMap.GetHandle())
 
-def OtherThread(id: str):
-    game = GameController("SingleInstance", "http://localhost:57913/", True)
-
-    time.sleep(1)
-    game.startGame()
-    game.keydown(KEYS.LEFT)
-
-    while True:
-        # print("Frame")
-        frame = game.getNextFrame()
-        frame.putpixel((500, 500), (0,0,255))
-        frame.save("screenshot_debug.png")
-        time.sleep(0.5)
-    return game
-
-def main():
+async def GameThread():
     # Single game test
-    game1 = GameController("SingleInstance1", "http://localhost:57913/", True)
-    game2 = GameController("SingleInstance2", "http://localhost:57913/", True)
+    game1 = GameController("SingleInstance1", "http://localhost:55149/", True)
+    game2 = GameController("SingleInstance2", "http://localhost:55149/", True)
     # game = GameController("SingleInstance", "http://127.0.0.1:5500/Slope-Game-main/index.html", True)
 
-    time.sleep(1)
+    await asyncio.sleep(1)
     game1.startGame()
     game1.keydown(KEYS.LEFT)
-    time.sleep(0.5)
+    await asyncio.sleep(0.5)
     game2.startGame()
     game2.keydown(KEYS.LEFT)
 
@@ -257,20 +261,18 @@ def main():
         # print("Frame")
         frame = game1.getNextFrame()
         frame = game2.getNextFrame()
-        time.sleep(0.5)
+        await asyncio.sleep(0.5)
 
+async def blockingThread():
+    while True:
+        print("balls")
+        await asyncio.sleep(1)
 
-    # from concurrent.futures import ThreadPoolExecutor
-    # drivers = []
-    # with ThreadPoolExecutor(max_workers=5) as executor:
-    #     futures = [executor.submit(OtherThread, i) for i in range(5)]
-
-    #     # Collect drivers as they are created
-    #     for future in futures:
-    #         drivers.append(future.result())
+async def main():
+    await asyncio.gather(GameThread(), blockingThread())
 
     
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

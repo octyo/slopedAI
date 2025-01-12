@@ -34,7 +34,7 @@ class GameData:
         self.model = model
 
 async def main():
-    x = 4
+    x = 2
     # Create starting population
     start_population = [create_model() for i in range(x)]
 
@@ -43,7 +43,7 @@ async def main():
     while True:
         if population == None:
             population = start_population
-        games = [GameData(AsyncGameController(id=str(i), url="http://localhost:50317/", debug=True), population[i]) for i in range(x)]
+        games = [GameData(AsyncGameController(id=str(i), url="http://localhost:55149/", debug=True), population[i]) for i in range(x)]
         for game in games:
             game.next_move = KEYS.NONE
         # print("111222")
@@ -105,5 +105,5 @@ async def main():
 
         # Other methods or smth
 
-
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())
