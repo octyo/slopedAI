@@ -13,6 +13,7 @@ import win32process
 import cv2
 from enum import Enum
 import asyncio
+import uuid
 
 class KEYS(Enum):
     NONE = 0
@@ -30,8 +31,8 @@ class GameMode(Enum):
     FrameMode = "frame-mode"
 
 class GameController:
-    def __init__(self, id, url, debug = False):
-        self.id = id
+    def __init__(self, id: str, url: str, debug: bool = False):
+        self.id = str(uuid.uuid5(uuid.NAMESPACE_DNS, id)) # should've never trusted y'all MFs to give an unique id. It's supposed to be different from the whole OS
         self.url = url
         self.debugging = debug
 
@@ -50,7 +51,7 @@ class GameController:
         self.actionChain = ActionChains(self.driver)
         gameContainer = self.driver.find_element(value="gameContainer")
         self.actionChain.click(gameContainer).perform()
-        if debug: print("Browser started")
+        if debug: print(f"[{str(self.id)}] Browser started")
 
         time.sleep(0.25)
 
@@ -171,11 +172,11 @@ class GameController:
                 self.currentGameState = GameState.READY
 
                 if self.debugging:
-                    print(f"Survived {self.deathTime - self.startTime} seconds")
+                    print(f"[{str(self.id)}] Survived {self.deathTime - self.startTime} seconds")
 
     def startGame(self):
         if self.debugging:
-            print("Started game: " + str(self.id))
+            print(f"[{str(self.id)}] Started game")
 
         self.keydown(KEYS.ENTER)
         self.startTime = time.time()
@@ -198,7 +199,7 @@ class GameController:
 
     def getNextFrame(self):
         if self.currentGameMode is not GameMode.FrameMode:
-            print("[ERROR] Current gamemode set to FrameMode. Current mode: " + str(self.currentGameMode))
+            print(f"[{str(self.id)}] [ERROR] Current gamemode set to FrameMode. Current mode: " + str(self.currentGameMode))
             return None
 
         self.driver.execute_script("requestOneFrame();")
