@@ -130,6 +130,7 @@ class GameController:
     }
 
     def getFrame(self):
+        # print(self.hwnd)
         rect = win32gui.GetWindowRect(self.hwnd)
         x = rect[0]
         y = rect[1]
@@ -164,10 +165,11 @@ class GameController:
         if (self.currentGameState == GameState.MIDGAME):
             currentFrame = img if img is not None else self.getFrame()
             rightBottomPixel = currentFrame.getpixel((500,500))
+            # rightBottomPixel = currentFrame.getpixel((430,430))
 
-            # print(rightBottomPixel)
+            # print(self.id, rightBottomPixel)
 
-            if rightBottomPixel == (245, 245, 245):
+            if rightBottomPixel == (245, 245, 245) or rightBottomPixel == (255, 255, 255):
                 self.deathTime = time.time()
                 self.currentGameState = GameState.READY
 
@@ -182,6 +184,7 @@ class GameController:
         self.startTime = time.time()
         self.currentGameState = GameState.MIDGAME
 
+        # time.sleep(0.1*10)
         time.sleep(0.1)
         self.keyup(KEYS.ENTER)
 
@@ -230,11 +233,15 @@ class GameController:
 
     def keydown(self, key: KEYS) -> None:
         seleniumKey = self.__getSeleniumVirtualKey(key)
-        self.actionChain.key_down(seleniumKey).perform()
+        if seleniumKey is not None:
+            # print("PRESSED", seleniumKey)
+            self.actionChain.key_down(seleniumKey).perform()
 
     def keyup(self, key):
         seleniumKey = self.__getSeleniumVirtualKey(key)
-        self.actionChain.key_up(seleniumKey).perform()
+        if seleniumKey is not None:
+            self.actionChain.key_up(seleniumKey).perform()
+            
 
 async def GameThread():
     # Single game test

@@ -4,24 +4,25 @@ import torch.nn as nn
 # Type stuff
 from torch.nn.modules.container import Sequential
 
-def create_model(channels=3):
+def create_model(channels=1):
     return nn.Sequential(
-        nn.Conv2d(channels, 16, kernel_size=3, stride=1, padding=1),
-        nn.Dropout2d(0.1),
+        nn.Conv2d(channels, 16, kernel_size=3, stride=1, padding=1), # 64x64x1 -> 64x64x16
         nn.ReLU(),
-        nn.MaxPool2d(kernel_size=2),
-        nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1),
-        nn.Dropout2d(0.1),
+        nn.MaxPool2d(kernel_size=2), # 64x64x16 -> 32x32x16
+
+        nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1), # 32x32x16 -> 32x32x32
         nn.ReLU(),
-        nn.MaxPool2d(kernel_size=2),
-        nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),
-        nn.Dropout2d(0.1),
+        nn.MaxPool2d(kernel_size=2), # 32x32x32 -> 16x16x32
+
+        nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1), # 16x16x32 -> 16x16x64
         nn.ReLU(),
-        nn.MaxPool2d(kernel_size=2),
-        nn.Flatten(),
-        nn.Linear(64 * 4 * 4, 500),
-        nn.Dropout2d(0.1),
+        nn.MaxPool2d(kernel_size=2), # 16x16x64 -> 8x8x64
+
+        nn.Flatten(), # 8x8x64 -> 64*8*8
+
+        nn.Linear(64*8*8, 500),
         nn.ReLU(),
+
         nn.Linear(500, 3)
         # Softmax?
     )

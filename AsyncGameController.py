@@ -45,12 +45,6 @@ class AsyncGameController:
         self.browserStartTime = time.time()
         
 
-    # async def long_func(self, i):
-    #     print("Started: ", i)
-    #     await asyncio.sleep(i)
-    #     print("Done")
-    #     return "Gello"
-    
     async def initiate(self):
         print("Started")
         self.driver = await self.__start_browser(self.url)
