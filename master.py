@@ -40,7 +40,7 @@ move_map = {
 
 async def main():
     # Initialize population
-    x = 4
+    x = 4 # Must be even
     start_population = [create_model() for i in range(x)]    # Create starting population
     population = None
     runs = 0
