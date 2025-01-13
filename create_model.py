@@ -1,9 +1,8 @@
 import torch
 import torch.nn as nn
-import torchvision.transforms as transforms
-import PIL
-import numpy as np
 
+# Type stuff
+from torch.nn.modules.container import Sequential
 
 def create_model(channels=3):
     return nn.Sequential(
@@ -26,3 +25,30 @@ def create_model(channels=3):
         nn.Linear(500, 3)
         # Softmax?
     )
+
+
+def gaussian_noise(model: Sequential, sigma=0.001) -> Sequential:
+    """Takes a torch model and returns a mutated model made via the gaussian noise evolution strategy"""
+
+    new_model = create_model()
+
+    new_params = []
+
+    for p in model.parameters():
+        rand_tensor = p * torch.randn(*p.shape) * sigma**(1/2)
+        # print(rand_tensor.round(decimals=3))
+        new_params.append(p + rand_tensor)
+
+
+    # Load the parameters into the new model's state_dict
+    state_dict = new_model.state_dict()  # Get the new model's state_dict
+    state_keys = list(state_dict.keys())  # Get parameter names in the state_dict
+    
+    # Assign new parameter values
+    for key, new_param in zip(state_keys, new_params):
+        state_dict[key] = new_param
+    
+    # Load the updated state_dict into the new model
+    new_model.load_state_dict(state_dict)
+
+    return new_model
