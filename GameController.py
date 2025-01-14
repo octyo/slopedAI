@@ -15,7 +15,6 @@ from enum import Enum
 import asyncio
 import uuid
 from concurrent.futures import ThreadPoolExecutor
-import threading
 
 
 class KEYS(Enum):
@@ -29,7 +28,6 @@ class GameState(Enum):
     LOADING = "loading"
     READY = "ready"
     MIDGAME = "in-progress"
-    ERROR = "error"
 
 
 class GameMode(Enum):
@@ -60,43 +58,29 @@ class GameController:
         self.actionChain = ActionChains(self.driver)
         gameContainer = self.driver.find_element(value="gameContainer")
         self.actionChain.click(gameContainer).perform()
-        if self.debugging:
+        if debug:
             print(f"[{str(self.id)}] Browser started")
 
         time.sleep(0.25)
 
-        self.MaxTries = 10
-        self.tries = 0
         self.hwnd = None
         while self.hwnd == None:
             self.hwnd = self.__getHWID()
-            if self.tries < self.MaxTries:
-                break
-            else:
-                self.tries =+ 1
-            time.sleep(0.5)  # retry every second
-        if self.debugging:
+            time.sleep(0.25)  # retry every second
+        if debug:
             print(f"Found hwid: {self.hwnd}")
-        if self.hwnd == None:
-            self.currentGameState == GameState.ERROR
-            self.driver = None
-            print(f"[{str(self.id)}] Failed to load")
-            return
 
-        # print(win32gui.GetWindowText(self.hwnd))
         self.__setupScreenCapture()
 
         while self.browserStartTime + 3 > time.time():
             time.sleep(0.001)  # Delay until 3 secs after browser started
-        if self.currentGameState != GameState.ERROR:
-            self.currentGameState = GameState.READY
+        self.currentGameState = GameState.READY
         self.__setGameMode(GameMode.FrameMode)
 
     def __start_browser(self, tab_url):
         options = webdriver.ChromeOptions()
         options.add_argument("--enable-temporary-unexpire-flags-m130")
         options.add_argument("--disable-gpu")
-        options.add_argument('--disable-browser-side-navigation')
         options.add_argument(f"--app={tab_url}")
         options.add_argument("--disable-calculate-native-win-occlusion")
         options.add_argument(f"--window-size={self.windowSize[0]},{self.windowSize[1]}")
@@ -105,30 +89,10 @@ class GameController:
         options.add_experimental_option(
             "excludeSwitches", ["enable-automation", "enable-logging"]
         )
-        # options = webdriver.FirefoxOptions()
-        # options.set_preference("devtools.chrome.enabled", True)  # Similar to enabling temporary flags
-        # options.set_preference("layers.acceleration.disabled", True)  # Equivalent to --disable-gpu
-        # options.set_preference("browser.tabs.remote.autostart", False)  # Equivalent to --disable-browser-side-navigation
-        # options.set_preference("toolkit.winRegisterApplicationRestart", False)  # Similar to disabling native win occlusion calculation
-        # options.set_preference("dom.disable_open_during_load", False)  # Allows app-specific URLs
-        # options.set_preference("general.useragent.override", "custom")  # Set custom user agent or similar log-level configuration
-
-        # # Window size is adjusted differently:
-        # options.add_argument(f"--width={self.windowSize[0]}")
-        # options.add_argument(f"--height={self.windowSize[1]}")
-        # options.set_preference(
-        #     "general.useragent.override",
-        #     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-        # )
-        # options.set_preference("webgl.disabled", False)  # Ensure WebGL is enabled
-        # options.set_preference("dom.webnotifications.enabled", False)  # Disable unnecessary notifications
-
-        # # Firefox does not use `excludeSwitches`, so infobars need manual handling:
-        # options.set_preference("browser.tabs.warnOnClose", False)  # Disable close warnings
-        # options.set_preference("browser.aboutConfig.showWarning", False)  # Disable about:config warnings
 
         # Start the WebDriver and navigate to the URL
         driver = webdriver.Chrome(options=options)
+        driver.get(tab_url)
         return driver
 
     def __list_windows(self):
@@ -276,8 +240,6 @@ class GameController:
 
     def getNextFrame(self):
         # print(f"[{str(self.id)}] {self.hwnd}")
-        if self.currentGameMode == GameState.ERROR:
-            return None
 
         if self.currentGameMode is not GameMode.FrameMode:
             print(
@@ -324,26 +286,28 @@ class GameController:
             self.actionChain.key_up(seleniumKey).perform()
 
 
+def CreateGameInstace(instanceIndex):
+    return GameController(str(instanceIndex), "http://localhost:3000/", True)
+
+
 if __name__ == "__main__":
     # asyncio.run(main())
 
-    num = 20
+    num = 4
     games = []
 
     def run_game_instance(index):
-        game = GameController(str(index), "http://localhost:8000/", True)
-        if game.currentGameState == GameState.ERROR:
-            return
+        game = CreateGameInstace(index)  # Initialize game
         game.startGame()
         game.keydown(KEYS.LEFT)
         while True:
-            if (game.currentGameState == GameState.READY) or (
-                game.currentGameState == GameState.ERROR
-            ):
+            frame = game.getNextFrame()  # Process frames within the thread
+            # Do something with the frame, e.g., store it or analyze it
+            # time.sleep(0.5)  # Simulate frame delay
+            if game.currentGameState == GameState.READY:
                 return
-            frame = game.getNextFrame()
-            
 
+    # Use ThreadPoolExecutor to create and run instances
     with ThreadPoolExecutor(max_workers=num) as executor:
         futures = []
         for i in range(num):
