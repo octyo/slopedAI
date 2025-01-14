@@ -53,3 +53,34 @@ def gaussian_noise(model: Sequential, sigma=0.001) -> Sequential:
     new_model.load_state_dict(state_dict)
 
     return new_model
+
+
+def crossover(model1: Sequential, model2: Sequential) -> Sequential:
+    """Takes two models as argument and returns a random parameter mix, where a given parameter in the new model is either from model1 og model2."""
+
+    new_model = create_model()
+
+    new_params = []
+
+    model1_params = [p for p in model1.parameters()]
+    model2_params = [p for p in model2.parameters()]
+
+    for i in range(len(model1_params)):
+        shape = model1_params[i].shape
+        bool_tensor = torch.randint(0, 2, size=shape, dtype=torch.bool)
+
+        new_params.append(model1_params[i] * bool_tensor + model2_params[i] * ~bool_tensor)
+
+
+    # Load the parameters into the new model's state_dict
+    state_dict = new_model.state_dict()  # Get the new model's state_dict
+    state_keys = list(state_dict.keys())  # Get parameter names in the state_dict
+    
+    # Assign new parameter values
+    for key, new_param in zip(state_keys, new_params):
+        state_dict[key] = new_param
+    
+    # Load the updated state_dict into the new model
+    new_model.load_state_dict(state_dict)
+
+    return new_model
