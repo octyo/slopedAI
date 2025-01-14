@@ -1,0 +1,117 @@
+%----------------basic pakages----------------
+\usepackage[utf8]{inputenc}                     % for special chareacter like "æøå"
+\usepackage[left=3cm,right=3cm,top=3cm,bottom=3cm]{geometry}  % for page size and margin setting
+\usepackage{float}
+\usepackage{calc}
+%\usepackage{hyperref}                          % page numbers and '\ref's become clickable
+\usepackage{authblk}                            % allow a footnote style of author/affiliation
+\usepackage{subfiles}
+\usepackage{parskip}                            % should remove indent at new lines
+\usepackage{cite}
+\usepackage{enumitem}                           % for control of 'enumerate'numbering
+\usepackage{listings}                           % for control of 'itemize spacing
+\usepackage{minted}                             %for good code formatting
+\usepackage{pdfpages}
+\usepackage{xcolor}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+%\usepackage{soul}
+%\usepackage[style=verbose-ibid,backend=bibtex]{biblatex}
+%\usepackage{biblatex}                           
+% basic package for sources bib
+%\addbibresource{sources.bib}                    
+% sources
+
+\usepackage[colorlinks=false,hidelinks]{hyperref}  % page numbers and '\ref's become clickable but without boxes
+
+
+%-----------images manipulation----------------
+\usepackage{subcaption}                        % for more pictures in one figure
+\usepackage{graphicx}
+\usepackage{wrapfig}                           % Allows figures or tables to have text wrapped around them
+\usepackage{lscape}
+\usepackage{svg}                               % for the automated integration of SVG graphics
+%  for for image manipulation
+\graphicspath{{/graphics}}
+
+%--------------math packages------------------
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{mathtools}
+
+%----------------tables-------------------------
+\usepackage{colortbl}                           % colour in tables
+\usepackage{makecell}                           % for  common tabular layouts 
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabu}
+\usepackage{tabularx}
+\usepackage{dcolumn}
+\usepackage{multirow}
+\usepackage{booktabs}                            % Enhances the quality of tables
+
+\usepackage{caption}
+\captionsetup[table]{name=Table, font=tiny, font=it} % edit size and font of table caption
+\captionsetup[figure]{name=Fig., font=tiny, font=it} % edit size and font of figure table
+\captionsetup[lstlisting]{name=Listing., font=tiny, font=it} % edit size and font of figure table
+
+%----------------header-&-footer----------------
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\StudieId}
+%\lhead{rettes nederst under opsætning/pakker}
+\rhead{(\KursusId) \KursusNavn}
+\rfoot{Page \thepage{} of \pageref{LastPage}}   % page number out of pages
+\lfoot{\Dato}                                   % gives date 
+
+%---------------------listings---------------
+
+\newenvironment{myitemize}{                     % "myitemsize" - custom make your own bulletlist
+    \begin{list}{$\bullet$}{%
+            \setlength{\itemsep}{0pt}%
+            \setlength{\parsep}{0pt}%
+            \setlength{\topsep}{0pt}%
+            \setlength{\partopsep}{0pt}%
+        }%
+        }{%
+    \end{list}%
+}
+
+%------------------lstlistings---------------
+\lstdefinestyle{mystyle}{
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+}
+\lstset{style=mystyle}
+
+%-----------------titles-----------------------
+\usepackage{titlesec} % Change fonts of sections
+
+\titleformat{\section}
+{\normalfont\LARGE\bfseries}{\thesection}{1em}{} % define format for the section titles
+
+\titleformat{\subsection}
+{\normalfont\Large\bfseries}{\thesubsection}{1em}{} % define format for the subsection titles
+
+\titleformat{\subsubsection}
+{\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{} % define format for the subsubsection titles
+
+
+
+\titlespacing{\section}{0pt}{1\baselineskip}{0.5\baselineskip} % change line spacing of the section title
+\titlespacing{\subsection}{0pt}{0.5\baselineskip}{0.3\baselineskip} % change line spacing of the subsection title
+\titlespacing{\subsubsection}{0pt}{0.5\baselineskip}{.1\baselineskip} % change line spacing of the subsection title
+
+
+

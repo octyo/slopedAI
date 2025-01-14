@@ -1,0 +1,46 @@
+\documentclass{article}
+\input{Opsætning/Pakker}
+\setcounter{secnumdepth}{0}
+
+
+% Vælg sprog
+\usepackage[english]{babel}
+% HVIS sprog ændres til ENGELSK - gå ind under 'Pakker' - 'header-&-footer' - ændre 'Side..af..' til 'Page..of..'
+
+
+% Skriv dine informationer her:
+\newcommand{\Title}{OVERSKRIFT}
+\newcommand{\StudieIdForside}{\ul{Gruppenummer}}
+\newcommand{\StudieId}{(Studienummer)}
+\newcommand{\Navn}{Navn (Studienummer)}
+\newcommand{\KursusId}{Kursusnummer}
+\newcommand{\KursusNavn}{Kursusnavn}
+\newcommand{\Dato}{\today}
+
+
+% Abstrakt og/eller ansvarsfordeling (skal udfyldes under rapport sider)
+\newcommand{\Abstract}{\input{Rapport sider/Abstract}}
+\newcommand{\Responsible}{\input{Rapport sider/Responsible}}
+
+% Forside ændres inde under 'Opsætning' - 'Forside'
+
+\titleformat*{\subsection}{\large\bfseries}
+\titleformat*{\subsubsection}{\normalsize\bfseries}
+
+
+\begin{document}
+
+% Her ændres rækkefølgen på siderne der skal inkluderes. 
+\input{Opsætning/Forside}                                         % indsætter forside
+\tableofcontents \newpage                                         % indsætter indholdsfortegnelse
+\input{Rapport sider/Introduction}                                % indsætter introduktion
+\input{Rapport sider/Method}                                      % indsætter methode
+\input{Rapport sider/Results}                                     % indsætter resultater
+\input{Rapport sider/Discussions}\newpage                         % indsætter diskussion
+
+\bibliographystyle{plain}
+\bibliography{sources} \newpage                                   % indsætter litteraturliste
+
+\input{Rapport sider/Appendix}                                    % indsætter bilag
+
+\end{document}
