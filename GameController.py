@@ -46,7 +46,7 @@ class GameController:
         # Defaults (DON'T CHANGE!)
         self.currentGameMode = GameMode.Normal
         self.currentGameState = GameState.LOADING
-        self.startTime = 0
+        self.currentTick = 0
         self.deathTime = 0
 
         # Other params
@@ -55,9 +55,10 @@ class GameController:
 
         self.browserStartTime = time.time()
         self.driver = self.__start_browser(self.url)
+        time.sleep(2)
         self.actionChain = ActionChains(self.driver)
-        gameContainer = self.driver.find_element(value="gameContainer")
-        self.actionChain.click(gameContainer).perform()
+        self.gameContainer = self.driver.find_element(value="gameContainer")
+        self.actionChain.click(self.gameContainer).perform()
         if debug:
             print(f"[{str(self.id)}] Browser started")
 
@@ -86,6 +87,7 @@ class GameController:
         options.add_argument(f"--window-size={self.windowSize[0]},{self.windowSize[1]}")
         options.add_argument("log-level=0")
         options.add_argument("disable-infobars")
+        options.add_argument("--disable-extensions")
         options.add_experimental_option(
             "excludeSwitches", ["enable-automation", "enable-logging"]
         )
@@ -190,14 +192,14 @@ class GameController:
     def getTimeAlive(self):
         if self.currentGameState != GameState.READY:
             return None
-        return self.deathTime - self.startTime - 3
+        return self.deathTime - self.currentTick - 3
 
     ### Returns enum of the current game state
     def __updateGameState(self, img=None):
         if self.currentGameState == GameState.MIDGAME:
             currentFrame = img if img is not None else self.getFrame()
-            rightBottomPixel = currentFrame.getpixel((500, 500))
-            # rightBottomPixel = currentFrame.getpixel((430,430))
+            #rightBottomPixel = currentFrame.getpixel((500, 500))
+            rightBottomPixel = currentFrame.getpixel((430,430))
 
             # print(self.id, rightBottomPixel)
 
@@ -211,7 +213,7 @@ class GameController:
 
                 if self.debugging:
                     print(
-                        f"[{str(self.id)}] Survived {self.deathTime - self.startTime} seconds"
+                        f"[{str(self.id)}] Survived {self.currentTick} Ticks"
                     )
 
     def startGame(self):
@@ -219,7 +221,7 @@ class GameController:
             print(f"[{str(self.id)}] Started game")
 
         self.keydown(KEYS.ENTER)
-        self.startTime = time.time()
+        self.currentTick = 0
         self.currentGameState = GameState.MIDGAME
 
         time.sleep(0.1 * 10)
@@ -249,13 +251,14 @@ class GameController:
             return None
 
         self.driver.execute_script("requestOneFrame();")
+        self.currentTick += 1
         return self.getFrame()
 
     def forceResetGame(self):
         self.driver.refresh()
         self.currentGameMode = GameMode.Normal
         self.currentGameState = GameState.LOADING
-        self.startTime = 0
+        self.currentTick = 0
         self.deathTime = 0
 
     def __getVirtualKey(self, key):
@@ -285,9 +288,12 @@ class GameController:
         if seleniumKey is not None:
             self.actionChain.key_up(seleniumKey).perform()
 
+    def __del__(self):
+        self.driver.quit()
+
 
 def CreateGameInstace(instanceIndex):
-    return GameController(str(instanceIndex), "http://localhost:3000/", True)
+    return GameController(str(instanceIndex), "http://localhost:53486/", True)
 
 
 if __name__ == "__main__":
@@ -301,9 +307,12 @@ if __name__ == "__main__":
         game.startGame()
         game.keydown(KEYS.LEFT)
         while True:
-            frame = game.getNextFrame()  # Process frames within the thread
-            # Do something with the frame, e.g., store it or analyze it
-            # time.sleep(0.5)  # Simulate frame delay
+            time.sleep(0.25)
+            frame: Image = game.getNextFrame()
+
+            # frame.putpixel((430,430), (0, 0, 255))
+            # frame.save(f"output_image_{index}.png", "PNG")
+
             if game.currentGameState == GameState.READY:
                 return
 
