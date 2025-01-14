@@ -88,6 +88,7 @@ class GameController:
         options.add_argument("log-level=0")
         options.add_argument("disable-infobars")
         options.add_argument("--disable-extensions")
+        options.add_argument("--disable-site-isolation-trials")
         options.add_experimental_option(
             "excludeSwitches", ["enable-automation", "enable-logging"]
         )
@@ -297,9 +298,8 @@ def CreateGameInstace(instanceIndex):
 
 
 if __name__ == "__main__":
-    # asyncio.run(main())
 
-    num = 4
+    num = 10
     games = []
 
     def run_game_instance(index):
