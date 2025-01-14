@@ -184,8 +184,8 @@ class GameController:
         self.startTime = time.time()
         self.currentGameState = GameState.MIDGAME
 
-        # time.sleep(0.1*10)
-        time.sleep(0.1)
+        time.sleep(0.1*10)
+        # time.sleep(0.1)
         self.keyup(KEYS.ENTER)
 
         if self.currentGameMode is GameMode.FrameMode:

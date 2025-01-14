@@ -10,7 +10,7 @@ import copy
 from GameController import * 
 
 # Define model, evolution based approach right now
-from create_model import create_model
+from create_model import create_model, gaussian_noise, crossover
 
 def preprocess(image):
     # Crop first
@@ -41,9 +41,15 @@ move_map = {
 async def main():
     # Initialize population
     x = 4 # Must be even
+    x_save = 2 # Save the top x models, the rest are new
     start_population = [create_model() for i in range(x)]    # Create starting population
     population = None
     runs = 0
+
+    # Initialize games
+    games = [GameData(GameController(id=str(i)+str(0000000)+str(runs), url="http://localhost:55149/", debug=True), start_population[i]) for i in range(x)]
+        
+
     # Loop: Runs games
     while True:
         runs += 1
@@ -51,9 +57,10 @@ async def main():
         if population == None:
             population = start_population
         
-        # Initialize games
-        games = [GameData(GameController(id=str(i)+str(0000000)+str(runs), url="http://localhost:55149/", debug=True), population[i]) for i in range(x)]
-        
+        # Update games with models
+        for i, game in enumerate(games):
+            game.model = population[i]
+
         # Each game will start with NONE as the next move
         for game in games:
             game.next_move = KEYS.NONE
@@ -138,19 +145,30 @@ async def main():
         # Sort by rewards
         population = [population[i] for i in np.argsort(rewards)]
         # Keep top models
-        population = population[int(x/2):]
+        population = population[-x_save:]
         # Save top models
         for i, model in enumerate(population):
             torch.save(model, f"model_{i}.pt")
         
         
-        # Mutate models
-        for i in range(0, int(x/2)):
-            population.append(copy.deepcopy(population[i]))
-            for param in population[-1].parameters():
-                param.data += torch.randn_like(param.data) * 0.1
+        # Evolutionary strategy
+        for i in range(0, x-x_save):
+            random_value = np.random.uniform(0, 20)
+            random_model = np.random.randint(0, x_save)
+            # if random_value <= 10:
+            #     population.append(copy.deepcopy(population[i]))
+            #     for param in population[-1].parameters():
+            #         param.data += torch.randn_like(param.data) * 0.1
+            if random_value <= 10:
+                population.append(gaussian_noise(population[i]))
+            if random_value > 10:
+                while random_model == 0:
+                    random_model = np.random.randint(1, x_save)
+                population.append(crossover(population[0], population[random_model]))
+        
+        await asyncio.sleep(5)
 
-        # Other methods or smth
+
 
 if __name__ == "__main__":
     asyncio.run(main())
