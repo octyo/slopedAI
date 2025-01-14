@@ -40,14 +40,14 @@ move_map = {
 
 async def main():
     # Initialize population
-    x = 4 # Must be even
+    x = 8 # Must be even
     x_save = 2 # Save the top x models, the rest are new
     start_population = [create_model() for i in range(x)]    # Create starting population
     population = None
     runs = 0
 
     # Initialize games
-    games = [GameData(GameController(id=str(i)+str(0000000)+str(runs), url="http://localhost:55149/", debug=True), start_population[i]) for i in range(x)]
+    games = [GameData(GameController(id=str(i)+str(0000000)+str(runs), url="http://localhost:3000/", debug=True), start_population[i]) for i in range(x)]
         
 
     # Loop: Runs games

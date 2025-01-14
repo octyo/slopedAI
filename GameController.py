@@ -14,6 +14,8 @@ import cv2
 from enum import Enum
 import asyncio
 import uuid
+from concurrent.futures import ThreadPoolExecutor
+
 
 class KEYS(Enum):
     NONE = 0
@@ -21,18 +23,23 @@ class KEYS(Enum):
     RIGHT = 2
     ENTER = 3
 
+
 class GameState(Enum):
     LOADING = "loading"
     READY = "ready"
     MIDGAME = "in-progress"
 
+
 class GameMode(Enum):
     Normal = "normal"
     FrameMode = "frame-mode"
 
+
 class GameController:
     def __init__(self, id: str, url: str, debug: bool = False):
-        self.id = str(uuid.uuid5(uuid.NAMESPACE_DNS, id)) # should've never trusted y'all MFs to give an unique id. It's supposed to be different from the whole OS
+        self.id = str(
+            uuid.uuid5(uuid.NAMESPACE_DNS, id)
+        )  # should've never trusted y'all MFs to give an unique id. It's supposed to be different from the whole OS
         self.url = url
         self.debugging = debug
 
@@ -44,26 +51,29 @@ class GameController:
 
         # Other params
         self.windowSize = (512, 512)
-        self.captureScale = 1.22 # i have no idea where this comes from :/
+        self.captureScale = 1.22  # i have no idea where this comes from :/
 
         self.browserStartTime = time.time()
         self.driver = self.__start_browser(self.url)
         self.actionChain = ActionChains(self.driver)
         gameContainer = self.driver.find_element(value="gameContainer")
         self.actionChain.click(gameContainer).perform()
-        if debug: print(f"[{str(self.id)}] Browser started")
+        if debug:
+            print(f"[{str(self.id)}] Browser started")
 
         time.sleep(0.25)
 
         self.hwnd = None
-        while (self.hwnd == None):
+        while self.hwnd == None:
             self.hwnd = self.__getHWID()
-            time.sleep(0.25) # retry every second
-        if debug: print(f"Found hwid: {self.hwnd}")
+            time.sleep(0.25)  # retry every second
+        if debug:
+            print(f"Found hwid: {self.hwnd}")
 
         self.__setupScreenCapture()
 
-        while self.browserStartTime + 3 > time.time(): time.sleep(0.001) # Delay until 3 secs after browser started
+        while self.browserStartTime + 3 > time.time():
+            time.sleep(0.001)  # Delay until 3 secs after browser started
         self.currentGameState = GameState.READY
         self.__setGameMode(GameMode.FrameMode)
 
@@ -76,7 +86,9 @@ class GameController:
         options.add_argument(f"--window-size={self.windowSize[0]},{self.windowSize[1]}")
         options.add_argument("log-level=0")
         options.add_argument("disable-infobars")
-        options.add_experimental_option("excludeSwitches", ['enable-automation', "enable-logging"]);
+        options.add_experimental_option(
+            "excludeSwitches", ["enable-automation", "enable-logging"]
+        )
 
         # Start the WebDriver and navigate to the URL
         driver = webdriver.Chrome(options=options)
@@ -108,7 +120,7 @@ class GameController:
 
     def __setupScreenCapture(self):
         self.wDC = win32gui.GetWindowDC(self.hwnd)
-        self.dcObj = win32ui.CreateDCFromHandle(self.wDC) 
+        self.dcObj = win32ui.CreateDCFromHandle(self.wDC)
         self.cDC = self.dcObj.CreateCompatibleDC()
 
         rect = win32gui.GetWindowRect(self.hwnd)
@@ -118,16 +130,28 @@ class GameController:
         h = rect[3] - y
 
         self.dataBitMap = win32ui.CreateBitmap()
-        self.dataBitMap.CreateCompatibleBitmap(self.dcObj, int(w*self.captureScale), int(h*self.captureScale))
+        self.dataBitMap.CreateCompatibleBitmap(
+            self.dcObj, int(w * self.captureScale), int(h * self.captureScale)
+        )
         self.cDC.SelectObject(self.dataBitMap)
 
         self.paddings = {
-        "caption_height": win32api.GetSystemMetrics(win32con.SM_CYCAPTION),  # Title bar height
-        "border_width": win32api.GetSystemMetrics(win32con.SM_CXBORDER),    # Vertical border width
-        "border_height": win32api.GetSystemMetrics(win32con.SM_CYBORDER),   # Horizontal border height
-        "frame_width": win32api.GetSystemMetrics(win32con.SM_CXFRAME),      # Resizable frame border width
-        "frame_height": win32api.GetSystemMetrics(win32con.SM_CYFRAME),     # Resizable frame border height
-    }
+            "caption_height": win32api.GetSystemMetrics(
+                win32con.SM_CYCAPTION
+            ),  # Title bar height
+            "border_width": win32api.GetSystemMetrics(
+                win32con.SM_CXBORDER
+            ),  # Vertical border width
+            "border_height": win32api.GetSystemMetrics(
+                win32con.SM_CYBORDER
+            ),  # Horizontal border height
+            "frame_width": win32api.GetSystemMetrics(
+                win32con.SM_CXFRAME
+            ),  # Resizable frame border width
+            "frame_height": win32api.GetSystemMetrics(
+                win32con.SM_CYFRAME
+            ),  # Resizable frame border height
+        }
 
     def getFrame(self):
         # print(self.hwnd)
@@ -139,16 +163,24 @@ class GameController:
 
         # Copy the client area from the screen
         self.cDC.BitBlt(
-            (0, 0), 
+            (0, 0),
             (int(w * self.captureScale), int(h * self.captureScale)),
-            self.dcObj, 
-            (self.paddings["frame_width"]*2 + self.paddings["border_width"],0), 
-            win32con.SRCCOPY
+            self.dcObj,
+            (self.paddings["frame_width"] * 2 + self.paddings["border_width"], 0),
+            win32con.SRCCOPY,
         )
 
         bmpinfo = self.dataBitMap.GetInfo()
         bmpstr = self.dataBitMap.GetBitmapBits(True)
-        img = Image.frombuffer('RGB', (bmpinfo['bmWidth'], bmpinfo['bmHeight']), bmpstr, 'raw', 'BGRX', 0, 1)
+        img = Image.frombuffer(
+            "RGB",
+            (bmpinfo["bmWidth"], bmpinfo["bmHeight"]),
+            bmpstr,
+            "raw",
+            "BGRX",
+            0,
+            1,
+        )
         img = img.resize(self.windowSize)
 
         self.__updateGameState(img)
@@ -156,25 +188,31 @@ class GameController:
         return img
 
     def getTimeAlive(self):
-        if (self.currentGameState != GameState.READY):
+        if self.currentGameState != GameState.READY:
             return None
         return self.deathTime - self.startTime - 3
 
     ### Returns enum of the current game state
-    def __updateGameState(self, img = None):
-        if (self.currentGameState == GameState.MIDGAME):
+    def __updateGameState(self, img=None):
+        if self.currentGameState == GameState.MIDGAME:
             currentFrame = img if img is not None else self.getFrame()
-            rightBottomPixel = currentFrame.getpixel((500,500))
+            rightBottomPixel = currentFrame.getpixel((500, 500))
             # rightBottomPixel = currentFrame.getpixel((430,430))
 
             # print(self.id, rightBottomPixel)
 
-            if rightBottomPixel == (245, 245, 245) or rightBottomPixel == (255, 255, 255):
+            if rightBottomPixel == (245, 245, 245) or rightBottomPixel == (
+                255,
+                255,
+                255,
+            ):
                 self.deathTime = time.time()
                 self.currentGameState = GameState.READY
 
                 if self.debugging:
-                    print(f"[{str(self.id)}] Survived {self.deathTime - self.startTime} seconds")
+                    print(
+                        f"[{str(self.id)}] Survived {self.deathTime - self.startTime} seconds"
+                    )
 
     def startGame(self):
         if self.debugging:
@@ -184,7 +222,7 @@ class GameController:
         self.startTime = time.time()
         self.currentGameState = GameState.MIDGAME
 
-        time.sleep(0.1*10)
+        time.sleep(0.1 * 10)
         # time.sleep(0.1)
         self.keyup(KEYS.ENTER)
 
@@ -197,12 +235,17 @@ class GameController:
             self.driver.execute_script('setMode("normal")')
         else:
             self.driver.execute_script('setMode("frame")')
-            
+
         self.currentGameMode = mode
 
     def getNextFrame(self):
+        # print(f"[{str(self.id)}] {self.hwnd}")
+
         if self.currentGameMode is not GameMode.FrameMode:
-            print(f"[{str(self.id)}] [ERROR] Current gamemode set to FrameMode. Current mode: " + str(self.currentGameMode))
+            print(
+                f"[{str(self.id)}] [ERROR] Current gamemode set to FrameMode. Current mode: "
+                + str(self.currentGameMode)
+            )
             return None
 
         self.driver.execute_script("requestOneFrame();")
@@ -218,16 +261,16 @@ class GameController:
     def __getVirtualKey(self, key):
         key_map = {
             KEYS.LEFT: 0x41,  # 'A' key
-            KEYS.RIGHT: 0x44, # 'D' key
-            KEYS.ENTER: 0x0D, # Enter key
+            KEYS.RIGHT: 0x44,  # 'D' key
+            KEYS.ENTER: 0x0D,  # Enter key
         }
         return key_map.get(key, None)  # Return None if the key is not found
-    
+
     def __getSeleniumVirtualKey(self, key):
         key_map = {
-            KEYS.LEFT: 'a',  # 'A' key
-            KEYS.RIGHT: 'd', # 'D' key
-            KEYS.ENTER: Keys.ENTER, # Enter key
+            KEYS.LEFT: "a",  # 'A' key
+            KEYS.RIGHT: "d",  # 'D' key
+            KEYS.ENTER: Keys.ENTER,  # Enter key
         }
         return key_map.get(key, None)  # Return None if the key is not found
 
@@ -241,37 +284,36 @@ class GameController:
         seleniumKey = self.__getSeleniumVirtualKey(key)
         if seleniumKey is not None:
             self.actionChain.key_up(seleniumKey).perform()
-            
 
-async def GameThread():
-    # Single game test
-    game1 = GameController("SingleInstance1", "http://localhost:55149/", True)
-    game2 = GameController("SingleInstance2", "http://localhost:55149/", True)
-    # game = GameController("SingleInstance", "http://127.0.0.1:5500/Slope-Game-main/index.html", True)
 
-    await asyncio.sleep(1)
-    game1.startGame()
-    game1.keydown(KEYS.LEFT)
-    await asyncio.sleep(0.5)
-    game2.startGame()
-    game2.keydown(KEYS.LEFT)
-
-    while True:
-        # print("Frame")
-        frame = game1.getNextFrame()
-        frame = game2.getNextFrame()
-        await asyncio.sleep(0.5)
-
-async def blockingThread():
-    while True:
-        print("balls")
-        await asyncio.sleep(1)
-
-async def main():
-    await asyncio.gather(GameThread(), blockingThread())
-
-    
+def CreateGameInstace(instanceIndex):
+    return GameController(str(instanceIndex), "http://localhost:3000/", True)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # asyncio.run(main())
+
+    num = 4
+    games = []
+
+    def run_game_instance(index):
+        game = CreateGameInstace(index)  # Initialize game
+        game.startGame()
+        game.keydown(KEYS.LEFT)
+        while True:
+            frame = game.getNextFrame()  # Process frames within the thread
+            # Do something with the frame, e.g., store it or analyze it
+            # time.sleep(0.5)  # Simulate frame delay
+            if game.currentGameState == GameState.READY:
+                return
+
+    # Use ThreadPoolExecutor to create and run instances
+    with ThreadPoolExecutor(max_workers=num) as executor:
+        futures = []
+        for i in range(num):
+            futures.append(executor.submit(run_game_instance, i))
+
+        for future in futures:
+            future.result()
+
+    print("Games are done")
