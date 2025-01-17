@@ -15,7 +15,6 @@ from enum import Enum
 import asyncio
 import uuid
 from concurrent.futures import ThreadPoolExecutor
-import threading
 
 
 class KEYS(Enum):
@@ -29,7 +28,6 @@ class GameState(Enum):
     LOADING = "loading"
     READY = "ready"
     MIDGAME = "in-progress"
-    ERROR = "error"
 
 
 class GameMode(Enum):
@@ -48,7 +46,7 @@ class GameController:
         # Defaults (DON'T CHANGE!)
         self.currentGameMode = GameMode.Normal
         self.currentGameState = GameState.LOADING
-        self.startTime = 0
+        self.currentTick = 0
         self.deathTime = 0
 
         # Other params
@@ -57,78 +55,47 @@ class GameController:
 
         self.browserStartTime = time.time()
         self.driver = self.__start_browser(self.url)
+        time.sleep(2)
         self.actionChain = ActionChains(self.driver)
-        gameContainer = self.driver.find_element(value="gameContainer")
-        self.actionChain.click(gameContainer).perform()
-        if self.debugging:
+        self.gameContainer = self.driver.find_element(value="gameContainer")
+        self.actionChain.click(self.gameContainer).perform()
+        if debug:
             print(f"[{str(self.id)}] Browser started")
 
         time.sleep(0.25)
 
-        self.MaxTries = 10
-        self.tries = 0
         self.hwnd = None
         while self.hwnd == None:
             self.hwnd = self.__getHWID()
-            if self.tries < self.MaxTries:
-                break
-            else:
-                self.tries =+ 1
-            time.sleep(0.5)  # retry every second
-        if self.debugging:
+            time.sleep(0.25)  # retry every second
+        if debug:
             print(f"Found hwid: {self.hwnd}")
-        if self.hwnd == None:
-            self.currentGameState == GameState.ERROR
-            self.driver = None
-            print(f"[{str(self.id)}] Failed to load")
-            return
 
-        # print(win32gui.GetWindowText(self.hwnd))
         self.__setupScreenCapture()
 
         while self.browserStartTime + 3 > time.time():
             time.sleep(0.001)  # Delay until 3 secs after browser started
-        if self.currentGameState != GameState.ERROR:
-            self.currentGameState = GameState.READY
+        self.currentGameState = GameState.READY
         self.__setGameMode(GameMode.FrameMode)
 
     def __start_browser(self, tab_url):
         options = webdriver.ChromeOptions()
         options.add_argument("--enable-temporary-unexpire-flags-m130")
         options.add_argument("--disable-gpu")
-        options.add_argument('--disable-browser-side-navigation')
         options.add_argument(f"--app={tab_url}")
         options.add_argument("--disable-calculate-native-win-occlusion")
         options.add_argument(f"--window-size={self.windowSize[0]},{self.windowSize[1]}")
         options.add_argument("log-level=0")
         options.add_argument("disable-infobars")
+        options.add_argument("--disable-extensions")
+        options.add_argument("--disable-site-isolation-trials")
         options.add_experimental_option(
             "excludeSwitches", ["enable-automation", "enable-logging"]
         )
-        # options = webdriver.FirefoxOptions()
-        # options.set_preference("devtools.chrome.enabled", True)  # Similar to enabling temporary flags
-        # options.set_preference("layers.acceleration.disabled", True)  # Equivalent to --disable-gpu
-        # options.set_preference("browser.tabs.remote.autostart", False)  # Equivalent to --disable-browser-side-navigation
-        # options.set_preference("toolkit.winRegisterApplicationRestart", False)  # Similar to disabling native win occlusion calculation
-        # options.set_preference("dom.disable_open_during_load", False)  # Allows app-specific URLs
-        # options.set_preference("general.useragent.override", "custom")  # Set custom user agent or similar log-level configuration
-
-        # # Window size is adjusted differently:
-        # options.add_argument(f"--width={self.windowSize[0]}")
-        # options.add_argument(f"--height={self.windowSize[1]}")
-        # options.set_preference(
-        #     "general.useragent.override",
-        #     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-        # )
-        # options.set_preference("webgl.disabled", False)  # Ensure WebGL is enabled
-        # options.set_preference("dom.webnotifications.enabled", False)  # Disable unnecessary notifications
-
-        # # Firefox does not use `excludeSwitches`, so infobars need manual handling:
-        # options.set_preference("browser.tabs.warnOnClose", False)  # Disable close warnings
-        # options.set_preference("browser.aboutConfig.showWarning", False)  # Disable about:config warnings
 
         # Start the WebDriver and navigate to the URL
         driver = webdriver.Chrome(options=options)
+        driver.get(tab_url)
         return driver
 
     def __list_windows(self):
@@ -226,14 +193,14 @@ class GameController:
     def getTimeAlive(self):
         if self.currentGameState != GameState.READY:
             return None
-        return self.deathTime - self.startTime - 3
+        return self.deathTime - self.currentTick - 3
 
     ### Returns enum of the current game state
     def __updateGameState(self, img=None):
         if self.currentGameState == GameState.MIDGAME:
             currentFrame = img if img is not None else self.getFrame()
-            rightBottomPixel = currentFrame.getpixel((500, 500))
-            # rightBottomPixel = currentFrame.getpixel((430,430))
+            #rightBottomPixel = currentFrame.getpixel((500, 500))
+            rightBottomPixel = currentFrame.getpixel((430,430))
 
             # print(self.id, rightBottomPixel)
 
@@ -247,7 +214,7 @@ class GameController:
 
                 if self.debugging:
                     print(
-                        f"[{str(self.id)}] Survived {self.deathTime - self.startTime} seconds"
+                        f"[{str(self.id)}] Survived {self.currentTick} Ticks"
                     )
 
     def startGame(self):
@@ -255,7 +222,7 @@ class GameController:
             print(f"[{str(self.id)}] Started game")
 
         self.keydown(KEYS.ENTER)
-        self.startTime = time.time()
+        self.currentTick = 0
         self.currentGameState = GameState.MIDGAME
 
         time.sleep(0.1 * 10)
@@ -276,8 +243,6 @@ class GameController:
 
     def getNextFrame(self):
         # print(f"[{str(self.id)}] {self.hwnd}")
-        if self.currentGameMode == GameState.ERROR:
-            return None
 
         if self.currentGameMode is not GameMode.FrameMode:
             print(
@@ -287,13 +252,14 @@ class GameController:
             return None
 
         self.driver.execute_script("requestOneFrame();")
+        self.currentTick += 1
         return self.getFrame()
 
     def forceResetGame(self):
         self.driver.refresh()
         self.currentGameMode = GameMode.Normal
         self.currentGameState = GameState.LOADING
-        self.startTime = 0
+        self.currentTick = 0
         self.deathTime = 0
 
     def __getVirtualKey(self, key):
@@ -323,27 +289,34 @@ class GameController:
         if seleniumKey is not None:
             self.actionChain.key_up(seleniumKey).perform()
 
+    def __del__(self):
+        self.driver.quit()
+
+
+def CreateGameInstace(instanceIndex):
+    return GameController(str(instanceIndex), "http://localhost:53486/", True)
+
 
 if __name__ == "__main__":
-    # asyncio.run(main())
 
-    num = 20
+    num = 10
     games = []
 
     def run_game_instance(index):
-        game = GameController(str(index), "http://localhost:8000/", True)
-        if game.currentGameState == GameState.ERROR:
-            return
+        game = CreateGameInstace(index)  # Initialize game
         game.startGame()
         game.keydown(KEYS.LEFT)
         while True:
-            if (game.currentGameState == GameState.READY) or (
-                game.currentGameState == GameState.ERROR
-            ):
-                return
-            frame = game.getNextFrame()
-            
+            time.sleep(0.25)
+            frame: Image = game.getNextFrame()
 
+            # frame.putpixel((430,430), (0, 0, 255))
+            # frame.save(f"output_image_{index}.png", "PNG")
+
+            if game.currentGameState == GameState.READY:
+                return
+
+    # Use ThreadPoolExecutor to create and run instances
     with ThreadPoolExecutor(max_workers=num) as executor:
         futures = []
         for i in range(num):
