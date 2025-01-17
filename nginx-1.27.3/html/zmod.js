@@ -1,5 +1,5 @@
 let speedConfig = {
-  speed: 1,
+  speed: 0.01,
   cbPerformanceNowChecked: true,
   cbRequestAnimationFrameChecked: true,
 };
@@ -91,7 +91,7 @@ window.requestOneFrame = () => {
 // "normal" for normal speed. "frame" for frame by frame
 window.setMode = (mode) => {
   if (mode === "normal") {
-    speedConfig.speed = 1;
+    speedConfig.speed = 0.01;
   } else {
     speedConfig.speed = 0;
   }

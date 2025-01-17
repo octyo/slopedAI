@@ -73,9 +73,9 @@ class GameController:
 
         self.__setupScreenCapture()
 
-        while self.browserStartTime + 3 > time.time():
-            time.sleep(0.001)  # Delay until 3 secs after browser started
-        self.currentGameState = GameState.READY
+        while self.currentGameState == GameState.LOADING:
+            time.sleep(0.05)
+            self.getFrame()
         self.__setGameMode(GameMode.FrameMode)
 
     def __start_browser(self, tab_url):
@@ -216,6 +216,25 @@ class GameController:
                     print(
                         f"[{str(self.id)}] Survived {self.currentTick} Ticks"
                     )
+        elif self.currentGameState == GameState.LOADING:
+            currentFrame = img if img is not None else self.getFrame()
+            #rightBottomPixel = currentFrame.getpixel((500, 500))
+            rightBottomPixel = currentFrame.getpixel((50,50))
+
+            # print(self.id, rightBottomPixel)
+
+            if rightBottomPixel == (
+                000,
+                000,
+                000,
+            ):
+                self.deathTime = time.time()
+                self.currentGameState = GameState.READY
+
+                if self.debugging:
+                    print(
+                        f"[{str(self.id)}] Game ready"
+                    )
 
     def startGame(self):
         if self.debugging:
@@ -294,13 +313,13 @@ class GameController:
 
 
 def CreateGameInstace(instanceIndex):
-    return GameController(str(instanceIndex), "http://localhost:53486/", True)
+    return GameController(str(instanceIndex), "http://localhost:8000", False)
 
 
 if __name__ == "__main__":
 
-    num = 10
-    games = []
+    num = 100
+    success = 0
 
     def run_game_instance(index):
         game = CreateGameInstace(index)  # Initialize game
@@ -308,13 +327,18 @@ if __name__ == "__main__":
         game.keydown(KEYS.LEFT)
         while True:
             time.sleep(0.25)
-            frame: Image = game.getNextFrame()
+            game.getNextFrame()
 
             # frame.putpixel((430,430), (0, 0, 255))
             # frame.save(f"output_image_{index}.png", "PNG")
 
             if game.currentGameState == GameState.READY:
-                return
+                if game.currentTick > 5:
+                    print(f"Game finished with {game.currentTick} ticks")
+                    return True
+                else:
+                    print(f"Invalid game")
+                    return False
 
     # Use ThreadPoolExecutor to create and run instances
     with ThreadPoolExecutor(max_workers=num) as executor:
@@ -323,6 +347,7 @@ if __name__ == "__main__":
             futures.append(executor.submit(run_game_instance, i))
 
         for future in futures:
-            future.result()
+            if future.result():
+                success += 1
 
-    print("Games are done")
+    print(f"Games are done. ({success}/{num})")

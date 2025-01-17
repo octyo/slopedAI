@@ -47,7 +47,7 @@ async def main():
     runs = 0
 
     # Initialize games
-    games = [GameData(GameController(id=str(i)+str(0000000)+str(runs), url="http://localhost:3000/", debug=True), start_population[i]) for i in range(x)]
+    games = [GameData(GameController(id=str(i)+str(0000000)+str(runs), url="http://localhost:51005", debug=True), start_population[i]) for i in range(x)]
         
 
     # Loop: Runs games
