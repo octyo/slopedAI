@@ -1,46 +1,136 @@
-\documentclass{article}
-\input{Opsætning/Pakker}
-\setcounter{secnumdepth}{0}
+\documentclass[12pt]{article}
+\usepackage[a4paper, margin=2cm]{geometry}
+\usepackage{tabularx}
+\usepackage{setspace}
+\usepackage{bm}
+\usepackage{tcolorbox}
+\usepackage{graphicx}
+\usepackage{titlesec}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{background}
+\usepackage{cancel}
+\usepackage{mathdots}
+\usepackage{amssymb}
+\usepackage[hidelinks]{hyperref}
+%\usepackage{svg}
+
+% \usepackage[table]{xcolor}
+% \usepackage{biblatex}
+% \addbibresource{references.bib}
+
+% "latex-workshop.latex.tools": [
+%         {
+%             "name": "latexmk",
+%             "command": "latexmk",
+%             "args": [
+%                 "-xelatex",
+%                 "--shell-escape",
+%                 "-synctex=1",
+%                 "-interaction=nonstopmode",
+%                 "-file-line-error",
+%                 "%DOC%"
+%             ]
+%         }
+%    ],
+
+\newcommand{\znote}[1]{
+  \noindent
+  \colorbox{yellow}{
+    \parbox{\linewidth}{#1}
+  }
+}
+
+% Force display style for all math
+\everymath{\displaystyle}
+\everydisplay{\displaystyle}
 
 
-% Vælg sprog
-\usepackage[english]{babel}
-% HVIS sprog ændres til ENGELSK - gå ind under 'Pakker' - 'header-&-footer' - ændre 'Side..af..' til 'Page..of..'
+\DeclareMathSymbol{*}{\mathbin}{symbols}{"01}
+\renewcommand{\ast}{\cdot}
 
+\definecolor{lightblue}{RGB}{169, 184, 242}
+\definecolor{lightblue2}{RGB}{197, 205, 237}
+\definecolor{lightblue3}{RGB}{227, 232, 252}
+\renewcommand{\arraystretch}{1.5}
 
-% Skriv dine informationer her:
-\newcommand{\Title}{OVERSKRIFT}
-\newcommand{\StudieIdForside}{\ul{Gruppenummer}}
-\newcommand{\StudieId}{(Studienummer)}
-\newcommand{\Navn}{Navn (Studienummer)}
-\newcommand{\KursusId}{Kursusnummer}
-\newcommand{\KursusNavn}{Kursusnavn}
-\newcommand{\Dato}{\today}
+\backgroundsetup{
+  scale=1,
+  color=black,
+  opacity=1,
+  angle=0,
+  position=current page.south west,
+  nodeanchor=south west,
+  vshift=0mm,
+  hshift=0mm,
+  contents={\includegraphics[width=\paperwidth,height=\paperheight]{background.png}}
+}
 
+% % Disable numbering for the sections table of contents
+% \usepackage{tocloft}
+% \titleformat{\section}[block]{\normalfont\Large\bfseries}{\empty}{0pt}{}
+% \titleformat{\subsection}[block]{\normalfont\large\bfseries}{\empty}{0pt}{}
+% \titleformat{\subsubsection}[block]{\normalfont\normalsize\bfseries}{\empty}{0pt}{}
+% \renewcommand{\numberline}[1]{} % No number in TOC
 
-% Abstrakt og/eller ansvarsfordeling (skal udfyldes under rapport sider)
-\newcommand{\Abstract}{\input{Rapport sider/Abstract}}
-\newcommand{\Responsible}{\input{Rapport sider/Responsible}}
+% Custom font
+\usepackage{fontspec}
+\setmainfont{NotoSans.ttf}[
+  BoldFont = NotoSans-Bold.ttf
+]
 
-% Forside ændres inde under 'Opsætning' - 'Forside'
-
-\titleformat*{\subsection}{\large\bfseries}
-\titleformat*{\subsubsection}{\normalsize\bfseries}
-
+% % Adds sub sub sub section
+% \makeatletter
+% \renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+%             {-2.5ex\@plus -1ex \@minus -.25ex}%
+%             {1.25ex \@plus .25ex}%
+%             {\normalfont\normalsize\bfseries}}
+% \makeatother
+% \setcounter{secnumdepth}{4} % how many sectioning levels to assign numbers to
+% \setcounter{tocdepth}{4}    % how many sectioning levels to show in ToC
 
 \begin{document}
+\title{Stats notes}
+\author{Zhentao Wei}
+\maketitle
+\newpage
+\thispagestyle{empty}
+\newpage
 
-% Her ændres rækkefølgen på siderne der skal inkluderes. 
-\input{Opsætning/Forside}                                         % indsætter forside
-\tableofcontents \newpage                                         % indsætter indholdsfortegnelse
-\input{Rapport sider/Introduction}                                % indsætter introduktion
-\input{Rapport sider/Method}                                      % indsætter methode
-\input{Rapport sider/Results}                                     % indsætter resultater
-\input{Rapport sider/Discussions}\newpage                         % indsætter diskussion
+\tableofcontents
+\newpage
 
-\bibliographystyle{plain}
-\bibliography{sources} \newpage                                   % indsætter litteraturliste
+\section{Preface}
+The colors mean different things:\\
+\colorbox{yellow}{Summed up into Zhen talk}
 
-\input{Rapport sider/Appendix}                                    % indsætter bilag
+\newpage
+\section{Basic python functions}
 
+\begin{table}[h!]
+  \centering
+  \begin{tabular}{|p{6cm}|p{10cm}|}
+  \hline
+  \textbf{Function} & \textbf{Parameters} \\ \hline
+  {\textbf{torch.nn.Linear}(in\_features, out\_features, bias)}
+  & \parbox{6cm}{
+      \textbf{in\_features}: num inputs \\
+      \textbf{out\_features}: num outputs \\
+      \textbf{bias}: bias
+    } 
+  \\ \hline
+
+  {\textbf{torch.nn.Sequential}()}
+  & \parbox{6cm}{
+    Layers of the model \\
+    Example:
+    
+  } \\ \hline
+  \end{tabular}
+\end{table}
+
+
+\newpage
+% \printbibliography
 \end{document}
+ 

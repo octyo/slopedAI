@@ -1,6 +1,2 @@
-\babel@toc {english}{}\relax 
-\contentsline {section}{Introduction}{2}{Doc-Start}%
-\contentsline {section}{Method}{2}{Doc-Start}%
-\contentsline {section}{Results}{2}{Doc-Start}%
-\contentsline {section}{Discussion}{2}{Doc-Start}%
-\contentsline {section}{Appendix}{4}{Doc-Start}%
+\contentsline {section}{\numberline {1}Preface}{3}{section.1}%
+\contentsline {section}{\numberline {2}Basic python functions}{4}{section.2}%
