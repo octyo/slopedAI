@@ -1,0 +1,1 @@
+2025/01/14 15:06:41 [error] 26616#28832: *1 CreateFile() "C:\FastAccessFiles\OtherCodingProjects\2025\slopedAI\nginx-1.27.3/html/favicon.ico" failed (2: The system cannot find the file specified), client: 127.0.0.1, server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "localhost:8000", referrer: "http://localhost:8000/"
