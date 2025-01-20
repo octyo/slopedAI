@@ -5,31 +5,16 @@ import PIL
 import numpy as np
 import asyncio
 import copy
-
-
 from GameController import * 
-
-# Define model, evolution based approach right now
 from create_model import create_model, gaussian_noise, crossover
-
-def preprocess(image):
-    # Crop first
-    to_tensor = transforms.Compose([transforms.ToTensor()])
-
-    # images = [image1, image2, image3, image4]
-    images = image
-
-    sequence = torch.cat([to_tensor(image.convert("L").resize((64,64))) for image in images]).unsqueeze(0)
-    return sequence
 
 class GameData:
     def __init__(self, game_object, model):
         self.game_object = game_object
         self.reward = None
         self.next_move = None
-        self.latest_frame = None
+        # self.latest_frame = None
         self.model = model
-
 
 move_map = {
     0: KEYS.NONE,
@@ -38,150 +23,104 @@ move_map = {
     3: KEYS.ENTER
 }
 
-async def main():
-    # Initialize population
-    x = 8 # Must be even
-    x_save = 2 # Save the top x models, the rest are new
-    start_population = [create_model() for i in range(x)]    # Create starting population
-    population = None
-    runs = 0
+def CreateGameInstace(instanceIndex, total_hosts):
+    # Hosting on four localhost, so open on first then next then next then next, then 
+    i = instanceIndex % total_hosts +1 # 1 % 4 = 1, 2 % 4 = 2, 3 % 4 = 3, 4 % 4 = 0
 
-    # Initialize games
-    games = [GameData(GameController(id=str(i)+str(0000000)+str(runs), url="http://localhost:51005", debug=True), start_population[i]) for i in range(x)]
-        
+    # return GameController(str(instanceIndex), f"http://localhost:300{i}/", True)
+    return GameController(str(instanceIndex), f"http://localhost:8800/", True)
 
-    # Loop: Runs games
-    while True:
-        runs += 1
-        # The first game played will be with the starting population
-        if population == None:
-            population = start_population
-        
-        # Update games with models
-        for i, game in enumerate(games):
-            game.model = population[i]
+def preprocess(images):
+    to_tensor = transforms.Compose([transforms.ToTensor()])
+    sequence = torch.cat([to_tensor(image.convert("L").resize((64,64))) for image in images]).unsqueeze(0)
+    return sequence
 
-        # Each game will start with NONE as the next move
-        for game in games:
-            game.next_move = KEYS.NONE
+def find_move(model, frame):
+    output = model.forward(frame) # Forward pass through CNN
+    pred_idx = torch.argmax(output, 1)
+    return move_map[int(pred_idx)]
 
-        # New code implementation
-        for game in games:
-            game.game_object.startGame()
-            game.game_object.keydown(game.next_move)
 
-        time.sleep(0.1)
+def game_player(index, model, total_hosts): # Do I need async here?
+    try:
+        time.sleep(index/100)
+        game = CreateGameInstace(index, total_hosts)  # Initialize game
+        game.startGame()
+        game.keydown(KEYS.NONE)
 
-        # Key up
-        for game in games:
-            game.game_object.keyup(game.next_move)
-        
-        # Loop: Runs frames in each game
         while True:
-            # Get frames from each game
-            frames = []
-            for game in games:
-                frames.append(game.game_object.getNextFrame())
+            frame = game.getNextFrame()  # Process frames within the thread
+            frame = preprocess([frame])
+
+            # time.sleep(0.5)  # Simulate frame delay
+            if game.currentGameState == GameState.READY:
+                # return game.getTimeAlive()
+                return game.currentTick
+
+            next_move = find_move(model, frame)
+
+            game.keydown(next_move)
+            time.sleep(0.1) #??
+            game.keyup(next_move)
+    except Exception as e:
+        print("Error in game_player")
+        return 0
+
+def evolution(models):
+    find_strategy = np.random.randint(0, 2)
+    
+    if find_strategy == 0:
+        find_model = np.random.randint(0, len(models))
+        return gaussian_noise(models[find_model], 0.1)
+    
+    elif find_strategy == 1:
+        if len(models) == 1:
+            print("Only one model in the population, using gaussian noise instead")
+            return gaussian_noise(models[0])
         
+        find_model1 = np.random.randint(0, len(models))
+        find_model2 = np.random.randint(0, len(models))
 
-            # Access the current state of the game, as well as the time
-            done_lst = [game.game_object.currentGameState == GameState.READY for game in games]
-            print(done_lst)
-            
-            # Games are finished, the loop should break
-            if all(done_lst):
-                print("DONE")
-                break
+        while find_model1 == find_model2:
+            find_model2 = np.random.randint(0, len(models))
 
-            # print(frames)
-
-            # Preprocessing
-            frames = preprocess(frames)
-            # print(frames.shape)
-            
-            # Save to the latest_frame attribute
-            for i, game in enumerate(games):
-                temp = frames[0][i]
-                temp = temp.unsqueeze(0)
-                game.latest_frame = temp.unsqueeze(0)
-
-            # Finding the next move
-            for game in games:
-                # print(game.latest_frame.shape)
-                nxt_move = game.model.forward(game.latest_frame) # -> dtype: tensor
-                # print(nxt_move)
-                pred_idx = torch.argmax(nxt_move, 1)
-                # print(game.game_object.id,pred_idx)
-                game.next_move = move_map[int(pred_idx)] 
-                # KEYS(KEYS(int(pred_idx)).name)
-                # print(game.next_move, type(game.next_move))
-                print(game.game_object.id, KEYS(int(pred_idx)).name)
-                # print("Next_move", game.next_move)
-
-            time.sleep(0.1)
-            
-            # Send the next move to the game
-            for game in games:
-                # print(game.next_move)
-                game.game_object.keydown(game.next_move)
-
-            await asyncio.sleep(0.1)
-
-            # Key up
-            for game in games:
-                game.game_object.keyup(game.next_move)
-
-            continue
-            lst = [game.game_object.keydown(game.next_move) for game in games]
-            await asyncio.gather(*lst)
-
-            lst = [game.game_object.keyup(game.next_move) for game in games]
-            await asyncio.gather(*lst)
-            
-        
-        # Create new models via mutation and other methods
-        # Finding latest rewards
-        rewards = [game.game_object.getTimeAlive() for game in games]
-        # Sort by rewards
-        population = [population[i] for i in np.argsort(rewards)]
-        # Keep top models
-        population = population[-x_save:]
-        # Save top models
-        for i, model in enumerate(population):
-            torch.save(model, f"model_{i}.pt")
-        
-        
-        # Evolutionary strategy
-        for i in range(0, x-x_save):
-            random_value = np.random.uniform(0, 20)
-            random_model = np.random.randint(0, x_save)
-            # if random_value <= 10:
-            #     population.append(copy.deepcopy(population[i]))
-            #     for param in population[-1].parameters():
-            #         param.data += torch.randn_like(param.data) * 0.1
-            if random_value <= 10:
-                population.append(gaussian_noise(population[i]))
-            if random_value > 10:
-                while random_model == 0:
-                    random_model = np.random.randint(1, x_save)
-                population.append(crossover(population[0], population[random_model]))
-        
-        await asyncio.sleep(5)
-
-
+        return crossover(models[find_model1], models[find_model2])
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    x = 30
+    x_save = 6
+    models = [create_model() for i in range(x)]
+    run_count = 0
+    total_hosts = 4 # How many hosts are running the game, starting from 3001, then 3002, 3003, 3004 ...
+    while True:
+        run_count += 1
+        time_alive_lst = []
 
+        # Start cleaning process
+        process = multiprocessing.Process(target=CleanDeadBrowsers)
+        process.start()
+        set_high_priority(process.pid)
+        
+        with ThreadPoolExecutor(max_workers=x) as executor:
+            futures = []
+            for i in range(x):
+                futures.append(executor.submit(game_player, i, models[i], total_hosts))
+            for future in futures:
+                time_alive_lst.append(future.result())
+        
+        print(time_alive_lst)
 
-# Old code with async.gather
-            # await asyncio.gather(*[game.game_object.initiate() for game in games])
-            # time.sleep(1)
-            # lst = [game.game_object.startGame() for game in games]
-            # await asyncio.gather(*lst)
-            # lst = [game.game_object.keydown(game.next_move) for game in games]
-            # await asyncio.gather(*lst)
-
-# Old code with async.gather
-            # lst = [game.game_object.getNextFrame() for game in games] # -> Only returns frames
-            # frames = await asyncio.gather(*lst)
+        print("Games are done")
+        # Evolutionary strategy
+        models = [models[i] for i in np.argsort(time_alive_lst)]
+        models = models[-x_save:]
+        print("Top models are saved", len(models))
+        # Save
+        for i, model in enumerate(models):
+            torch.save(model, f"model_{i}.pt")
+        print("Top models are saved", len(models))
+        lst = models
+        while len(lst) < x:
+            print("Creating new model")
+            lst.append(evolution(models))
+        models = lst
