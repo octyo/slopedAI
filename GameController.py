@@ -14,8 +14,11 @@ import cv2
 from enum import Enum
 import asyncio
 import uuid
+import os
+import psutil
 from concurrent.futures import ThreadPoolExecutor
-
+from datetime import datetime
+import multiprocessing
 
 class KEYS(Enum):
     NONE = 0
@@ -312,33 +315,76 @@ class GameController:
         self.driver.quit()
 
 
-def CreateGameInstace(instanceIndex):
-    return GameController(str(instanceIndex), "http://localhost:8000", False)
+def killPID(pid):
+    try:        
+        if pid:
+            process = psutil.Process(pid)
+            process.kill()
+    except Exception as e:
+        print(f"Error terminating process: {e}")
+
+
+def CleanDeadBrowsers():
+    time.sleep(20) # Let wait for initial clean
+
+    def callback(hwnd, handles):
+        if win32gui.IsWindowVisible(hwnd):
+            title = win32gui.GetWindowText(hwnd)
+            if title:  # Only include windows with a title
+                handles.append((hwnd, title))
+        return True
+
+    handles = []
+    win32gui.EnumWindows(callback, handles)
+    for hwnd, title in handles:
+        if title == "localhost_/":
+            _, pid = win32process.GetWindowThreadProcessId(hwnd)
+            killPID(pid)
+
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] Cleaned")
+
+def set_high_priority(pid):
+    """Set process priority to high."""
+    try:
+        p = psutil.Process(pid)
+        p.nice(psutil.HIGH_PRIORITY_CLASS)  # Set high priority
+        print(f"Process {pid} priority set to HIGH.")
+    except psutil.AccessDenied:
+        print("You need to run this script as administrator to change process priority.")
 
 
 if __name__ == "__main__":
+    print("Starting example")
 
-    num = 100
+    num = 20
     success = 0
 
     def run_game_instance(index):
-        game = CreateGameInstace(index)  # Initialize game
-        game.startGame()
-        game.keydown(KEYS.LEFT)
-        while True:
-            time.sleep(0.25)
-            game.getNextFrame()
+        try:
+            game = GameController(str(index), "http://localhost:8800", False) # Initialize game
+            game.startGame()
+            game.keydown(KEYS.LEFT)
+            while True:
+                time.sleep(0.25)
+                game.getNextFrame() 
 
-            # frame.putpixel((430,430), (0, 0, 255))
-            # frame.save(f"output_image_{index}.png", "PNG")
+                # frame.putpixel((430,430), (0, 0, 255))
+                # frame.save(f"output_image_{index}.png", "PNG")
 
-            if game.currentGameState == GameState.READY:
-                if game.currentTick > 5:
-                    print(f"Game finished with {game.currentTick} ticks")
-                    return True
-                else:
-                    print(f"Invalid game")
-                    return False
+                if game.currentGameState == GameState.READY:
+                    if game.currentTick > 5:
+                        print(f"Game finished with {game.currentTick} ticks")
+                        return True
+                    else:
+                        print(f"Invalid game")
+                        return False
+        except None:
+            pass
+
+    # Start cleaning process
+    process = multiprocessing.Process(target=CleanDeadBrowsers)
+    process.start()
+    set_high_priority(process.pid)
 
     # Use ThreadPoolExecutor to create and run instances
     with ThreadPoolExecutor(max_workers=num) as executor:
