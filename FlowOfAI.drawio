@@ -1,0 +1,138 @@
+<mxfile host="Electron" modified="2025-01-21T20:52:17.943Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.16 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" etag="AIa5UFXUEvphjJXWh2q-" version="22.1.16" type="device">
+  <diagram name="Page-1" id="b9ry90jkMemdXfTUXSxF">
+    <mxGraphModel dx="1750" dy="1048" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-15" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="hkoZmfaHMuN4EDssBHHB-1" target="hkoZmfaHMuN4EDssBHHB-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-1" value="&amp;nbsp;Start: master.py" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;" vertex="1" parent="1">
+          <mxGeometry x="365" y="150" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="hkoZmfaHMuN4EDssBHHB-2" target="hkoZmfaHMuN4EDssBHHB-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="hkoZmfaHMuN4EDssBHHB-11" target="hkoZmfaHMuN4EDssBHHB-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-2" value="Start indepedent cleaning process" style="rounded=1;whiteSpace=wrap;html=1;arcSize=9;" vertex="1" parent="1">
+          <mxGeometry x="550" y="330" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="hkoZmfaHMuN4EDssBHHB-4" target="hkoZmfaHMuN4EDssBHHB-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-4" value="Wait x seconds" style="rounded=1;whiteSpace=wrap;html=1;arcSize=9;" vertex="1" parent="1">
+          <mxGeometry x="550" y="450" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-6" value="Force close broken game windows" style="rounded=1;whiteSpace=wrap;html=1;arcSize=9;" vertex="1" parent="1">
+          <mxGeometry x="550" y="560" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-19" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.413;entryY=0.003;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="hkoZmfaHMuN4EDssBHHB-9" target="hkoZmfaHMuN4EDssBHHB-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-9" value="Start n instances of game with models" style="rounded=1;whiteSpace=wrap;html=1;arcSize=9;" vertex="1" parent="1">
+          <mxGeometry x="365" y="450" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="hkoZmfaHMuN4EDssBHHB-11" target="hkoZmfaHMuN4EDssBHHB-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="450" y="360" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-11" value="Create n number of models" style="rounded=1;whiteSpace=wrap;html=1;arcSize=9;" vertex="1" parent="1">
+          <mxGeometry x="365" y="260" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-16" value="" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="392" y="550" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-17" value="" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="385" y="557" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-22" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="hkoZmfaHMuN4EDssBHHB-18" target="hkoZmfaHMuN4EDssBHHB-21">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="425" y="660" />
+              <mxPoint x="425" y="660" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-18" value="Wait for each game to finish&lt;br&gt;(Game)" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="378" y="565" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-24" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="hkoZmfaHMuN4EDssBHHB-21" target="hkoZmfaHMuN4EDssBHHB-23">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-21" value="Take n models longest time alive" style="rounded=1;whiteSpace=wrap;html=1;arcSize=9;" vertex="1" parent="1">
+          <mxGeometry x="365" y="680" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-26" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.008;entryY=0.169;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="hkoZmfaHMuN4EDssBHHB-23" target="hkoZmfaHMuN4EDssBHHB-25">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="425" y="880" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-28" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1.007;entryY=0.169;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="hkoZmfaHMuN4EDssBHHB-23" target="hkoZmfaHMuN4EDssBHHB-27">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="425" y="880" />
+              <mxPoint x="393" y="880" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-23" value="Random" style="rhombus;whiteSpace=wrap;html=1;rounded=1;arcSize=9;" vertex="1" parent="1">
+          <mxGeometry x="385" y="780" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-30" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="hkoZmfaHMuN4EDssBHHB-25" target="hkoZmfaHMuN4EDssBHHB-29">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="425" y="910" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-25" value="Using guassian noise to mutate model" style="rounded=1;whiteSpace=wrap;html=1;arcSize=9;" vertex="1" parent="1">
+          <mxGeometry x="458" y="870" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-31" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="hkoZmfaHMuN4EDssBHHB-27" target="hkoZmfaHMuN4EDssBHHB-29">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="425" y="910" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-27" value="Using 2 models, randomly take weights from each" style="rounded=1;whiteSpace=wrap;html=1;arcSize=9;" vertex="1" parent="1">
+          <mxGeometry x="272" y="870" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="hkoZmfaHMuN4EDssBHHB-29" target="hkoZmfaHMuN4EDssBHHB-32">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-34" value="Yes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="hkoZmfaHMuN4EDssBHHB-33">
+          <mxGeometry x="-0.0267" y="5" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="hkoZmfaHMuN4EDssBHHB-29" target="hkoZmfaHMuN4EDssBHHB-9">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="250" y="995" />
+              <mxPoint x="250" y="480" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-36" value="No" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="hkoZmfaHMuN4EDssBHHB-35">
+          <mxGeometry x="-0.9218" y="-2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-29" value="Was the program stopped?" style="rhombus;whiteSpace=wrap;html=1;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="370" y="940" width="110" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="hkoZmfaHMuN4EDssBHHB-32" value="Stop program" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;" vertex="1" parent="1">
+          <mxGeometry x="530" y="965" width="120" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
