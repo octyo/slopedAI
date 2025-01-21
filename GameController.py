@@ -301,12 +301,14 @@ class GameController:
         return key_map.get(key, None)  # Return None if the key is not found
 
     def keydown(self, key: KEYS) -> None:
+        if key == KEYS.NONE: return
         seleniumKey = self.__getSeleniumVirtualKey(key)
         if seleniumKey is not None:
             # print("PRESSED", seleniumKey)
             self.actionChain.key_down(seleniumKey).perform()
 
     def keyup(self, key):
+        if key == KEYS.NONE: return
         seleniumKey = self.__getSeleniumVirtualKey(key)
         if seleniumKey is not None:
             self.actionChain.key_up(seleniumKey).perform()

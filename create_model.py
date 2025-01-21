@@ -34,7 +34,8 @@ def gaussian_noise(model: Sequential, sigma=0.001) -> Sequential:
     new_model = create_model()
 
     new_params = []
-
+    
+    model.to("cpu") # Bring model back to cpu
     for p in model.parameters():
         rand_tensor = p * torch.randn(*p.shape) * sigma**(1/2)
         # print(rand_tensor.round(decimals=3))
@@ -62,6 +63,8 @@ def crossover(model1: Sequential, model2: Sequential) -> Sequential:
 
     new_params = []
 
+    model1.to("cpu") # Bring model back to cpu
+    model2.to("cpu") # Bring model back to cpu
     model1_params = [p for p in model1.parameters()]
     model2_params = [p for p in model2.parameters()]
 

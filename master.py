@@ -35,20 +35,33 @@ def preprocess(images):
     sequence = torch.cat([to_tensor(image.convert("L").resize((64,64))) for image in images]).unsqueeze(0)
     return sequence
 
-def find_move(model, frame):
-    output = model.forward(frame) # Forward pass through CNN
-    pred_idx = torch.argmax(output, 1)
+def find_move(model, frame, device):
+    # Move frame to the same device as the model
+    frame = frame.to(device)
+    
+    # Perform the forward pass through the model
+    output = model.forward(frame)
+    
+    # Find the index of the maximum predicted value
+    pred_idx = torch.argmax(output, dim=1)
+    
+    # Return the corresponding move from the move map
     return move_map[int(pred_idx)]
 
-
 def game_player(index, model, total_hosts): # Do I need async here?
+    model = model.to(torchDevice) # Send to GPU
+
     try:
-        time.sleep(index/100)
+        # time.sleep(index/100)
         game = CreateGameInstace(index, total_hosts)  # Initialize game
         game.startGame()
         game.keydown(KEYS.NONE)
 
+        next_move = KEYS.NONE
+
         while True:
+            game.keydown(next_move) # Keydown for next frame
+
             frame = game.getNextFrame()  # Process frames within the thread
             frame = preprocess([frame])
 
@@ -57,11 +70,10 @@ def game_player(index, model, total_hosts): # Do I need async here?
                 # return game.getTimeAlive()
                 return game.currentTick
 
-            next_move = find_move(model, frame)
+            next_move = find_move(model, frame, torchDevice)
 
-            game.keydown(next_move)
-            time.sleep(0.1) #??
-            game.keyup(next_move)
+            game.keyup(next_move) # Keyup before next frame. So it remains held if keydown before next frame again
+            time.sleep(0.05) # Do not get too fast
     except Exception as e:
         print("Error in game_player")
         return 0
@@ -86,12 +98,17 @@ def evolution(models):
 
         return crossover(models[find_model1], models[find_model2])
 
+
+torchDevice = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if __name__ == "__main__":
-    x = 30
-    x_save = 6
+    x = 20
+    x_save = 4
     models = [create_model() for i in range(x)]
     run_count = 0
     total_hosts = 4 # How many hosts are running the game, starting from 3001, then 3002, 3003, 3004 ...
+
+    print(f"Using {torchDevice} for pytorch")
+
     while True:
         run_count += 1
         time_alive_lst = []

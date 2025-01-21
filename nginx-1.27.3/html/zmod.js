@@ -80,7 +80,7 @@ let performanceNowValue = null;
     
     
 window.requestOneFrame = () => {
-  speedConfig.speed = 1
+  speedConfig.speed = 2
 
   setTimeout(() => {
     speedConfig.speed = 0
@@ -91,7 +91,7 @@ window.requestOneFrame = () => {
 // "normal" for normal speed. "frame" for frame by frame
 window.setMode = (mode) => {
   if (mode === "normal") {
-    speedConfig.speed = 0.01;
+    speedConfig.speed = 2;
   } else {
     speedConfig.speed = 0;
   }
