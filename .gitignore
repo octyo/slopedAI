@@ -20,9 +20,7 @@ old_shi.py
 master2.py
 notes.txt
 <<<<<<< HEAD
+<<<<<<< HEAD
 extra/
 *.pt
 /nginx-1.27.3/logs
-=======
-extra/
->>>>>>> parent of ee8cc0e (Update .gitignore)
