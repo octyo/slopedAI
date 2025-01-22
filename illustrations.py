@@ -37,13 +37,26 @@ for i, color in enumerate(colors):
     
     scatter_z = f(scatter_x, scatter_y) + .025
 
-    # Add scatter point
-    fig.add_trace(go.Scatter3d(x=scatter_x, y=scatter_y, z=scatter_z, opacity=0.7, mode='markers', marker=dict(size=5, color=color)))
-
     new_center = np.argmax(scatter_z)
+
+    # Add scatter point
+    fig.add_trace(go.Scatter3d(x=np.delete(scatter_x, new_center), y=np.delete(scatter_y, new_center), z=np.delete(scatter_z, new_center), opacity=0.7, mode='markers', marker=dict(size=5, color=color)))
+    fig.add_trace(go.Scatter3d(x=[center_x], y=[center_y], z=[f(center_x, center_y) + .025], opacity=0.7, mode='markers', marker=dict(size=10, color="black", symbol="cross", line=dict(color='black', width=12))))
+
     center_x = scatter_x[new_center]
     center_y = scatter_y[new_center]
 
-fig.add_trace(go.Scatter3d(x=center_x_log, y=center_y_log, z=f(np.array(center_x_log), np.array(center_y_log)) + .025, marker=dict(size=5, color="green", opacity=0.0), line=dict(color='purple', width=5, dash="dash")))
+fig.add_trace(go.Scatter3d(x=center_x_log, y=center_y_log, z=f(np.array(center_x_log), np.array(center_y_log)) + .025, marker=dict(size=5, color="green", opacity=0.0), line=dict(color='black', width=5, dash="solid")))
+
+
+
+# fig.update_layout(
+#     scene = dict(
+#         xaxis = dict(nticks=4, range=[0,5],),
+#         yaxis = dict(nticks=4, range=[0,5],)
+#         # ,zaxis = dict(nticks=4, range=[-0.3,0.5],),
+#         ),
+#     width=700,
+#     margin=dict(r=20, l=10, b=10, t=10))
 
 fig.show()
