@@ -6,7 +6,8 @@ import numpy as np
 import asyncio
 import copy
 from GameController import * 
-from create_model import create_model, gaussian_noise, crossover
+from create_model import *
+from data import *
 
 class GameData:
     def __init__(self, game_object, model):
@@ -78,17 +79,17 @@ def game_player(index, model, total_hosts): # Do I need async here?
         print("Error in game_player")
         return 0
 
-def evolution(models):
+def evolution(models, model_creator):
     find_strategy = np.random.randint(0, 2)
     
     if find_strategy == 0:
         find_model = np.random.randint(0, len(models))
-        return gaussian_noise(models[find_model], 0.1)
+        return gaussian_noise(models[find_model], 0.1, model_creator)
     
     elif find_strategy == 1:
         if len(models) == 1:
             print("Only one model in the population, using gaussian noise instead")
-            return gaussian_noise(models[0])
+            return gaussian_noise(models[0], 0.1, model_creator)
         
         find_model1 = np.random.randint(0, len(models))
         find_model2 = np.random.randint(0, len(models))
@@ -96,20 +97,30 @@ def evolution(models):
         while find_model1 == find_model2:
             find_model2 = np.random.randint(0, len(models))
 
-        return crossover(models[find_model1], models[find_model2])
+        return crossover(models[find_model1], models[find_model2], model_creator)
+
+
 
 
 torchDevice = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if __name__ == "__main__":
     x = 20
-    x_save = 4
-    models = [create_model() for i in range(x)]
+    x_save = 8
+    model_creator = create_model_small_0
+    models = [model_creator() for i in range(x)]
     run_count = 0
     total_hosts = 4 # How many hosts are running the game, starting from 3001, then 3002, 3003, 3004 ...
-
     print(f"Using {torchDevice} for pytorch")
+    # Gathering data
+    data_types = ["random_moves", "small_1", "small_2", "small_2_newxsave", "small_1_newxsave", "small_0_newxsave"]
+    current_data_type = data_types[-1]
+    
 
     while True:
+        data = load_data("data.json")
+        if not current_data_type in list(data.keys()):
+            data[current_data_type] = []
+
         run_count += 1
         time_alive_lst = []
 
@@ -126,6 +137,8 @@ if __name__ == "__main__":
                 time_alive_lst.append(future.result())
         
         print(time_alive_lst)
+        data[current_data_type].append(time_alive_lst) # Save time alive data
+        save_data(data, "data.json")
 
         print("Games are done")
         # Evolutionary strategy
@@ -139,5 +152,6 @@ if __name__ == "__main__":
         lst = models
         while len(lst) < x:
             print("Creating new model")
-            lst.append(evolution(models))
-        models = lst
+            lst.append(evolution(models, model_creator))
+        models = lst   
+        

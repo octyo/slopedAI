@@ -27,11 +27,61 @@ def create_model(channels=1):
         # Softmax?
     )
 
+def create_model_small_2(channels=1):
+    return nn.Sequential(
+        nn.Conv2d(channels, 16, kernel_size=3, stride=1, padding=1), # 64x64x1 -> 64x64x16
+        nn.ReLU(),
+        nn.MaxPool2d(kernel_size=2), # 64x64x16 -> 32x32x16
 
-def gaussian_noise(model: Sequential, sigma=0.001) -> Sequential:
+        nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1), # 32x32x16 -> 32x32x32
+        nn.ReLU(),
+        nn.MaxPool2d(kernel_size=2), # 32x32x32 -> 16x16x32
+
+        nn.Flatten(), # 16x16x32 -> 32*16*16
+
+        nn.Linear(32*16*16, 500),
+        nn.ReLU(),
+
+        nn.Linear(500, 3)
+        # Softmax?
+    )
+
+def create_model_small_1(channels=1):
+    return nn.Sequential(
+        nn.Conv2d(channels, 16, kernel_size=3, stride=1, padding=1), # 64x64x1 -> 64x64x16
+        nn.ReLU(),
+        nn.MaxPool2d(kernel_size=2), # 64x64x16 -> 32x32x16
+
+        nn.Flatten(), # 32x32x16 -> 16*32*32
+
+        nn.Linear(16*32*32, 500),
+        nn.ReLU(),
+
+        nn.Linear(500, 3)
+        # Softmax?
+    )
+
+def create_model_small_0(channels=1):
+    return nn.Sequential(
+        nn.Conv2d(channels, 8, kernel_size=3, stride=1, padding=1), # 64x64x1 -> 64x64x8
+        nn.ReLU(),
+        nn.MaxPool2d(kernel_size=2), # 64x64x8 -> 32x32x8
+
+        nn.Flatten(), # 32x32x8 -> 8*32*32
+
+        nn.Linear(8*32*32, 500),
+        nn.ReLU(),
+
+        nn.Linear(500, 3)
+        # Softmax?
+    )
+
+
+
+def gaussian_noise(model: Sequential, sigma=0.001, model_creator=create_model) -> Sequential:
     """Takes a torch model and returns a mutated model made via the gaussian noise evolution strategy"""
 
-    new_model = create_model()
+    new_model = model_creator()
 
     new_params = []
     
@@ -56,10 +106,10 @@ def gaussian_noise(model: Sequential, sigma=0.001) -> Sequential:
     return new_model
 
 
-def crossover(model1: Sequential, model2: Sequential) -> Sequential:
+def crossover(model1: Sequential, model2: Sequential, model_creator) -> Sequential:
     """Takes two models as argument and returns a random parameter mix, where a given parameter in the new model is either from model1 og model2."""
 
-    new_model = create_model()
+    new_model = model_creator()
 
     new_params = []
 
