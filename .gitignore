@@ -21,3 +21,4 @@ master2.py
 notes.txt
 extra/
 *.pt
+/nginx-1.27.3/logs
