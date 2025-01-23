@@ -40,7 +40,7 @@ for i, color in enumerate(colors):
     new_center = np.argmax(scatter_z)
 
     # Add scatter point
-    fig.add_trace(go.Scatter3d(x=np.delete(scatter_x, new_center), y=np.delete(scatter_y, new_center), z=np.delete(scatter_z, new_center), opacity=0.7, mode='markers', marker=dict(size=5, color=color)))
+    fig.add_trace(go.Scatter3d(x=scatter_x, y=scatter_y, z=scatter_z, opacity=0.7, mode='markers', marker=dict(size=5, color=color)))
     fig.add_trace(go.Scatter3d(x=[center_x], y=[center_y], z=[f(center_x, center_y) + .025], opacity=0.7, mode='markers', marker=dict(size=10, color="black", symbol="cross", line=dict(color='black', width=12))))
 
     center_x = scatter_x[new_center]
