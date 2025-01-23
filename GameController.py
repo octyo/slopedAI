@@ -313,8 +313,8 @@ class GameController:
         if seleniumKey is not None:
             self.actionChain.key_up(seleniumKey).perform()
 
-    def __del__(self):
-        self.driver.quit()
+    # def __del__(self):
+        # self.driver.quit()
 
 
 def killPID(pid):

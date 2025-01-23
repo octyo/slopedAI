@@ -32,8 +32,14 @@ def CreateGameInstace(instanceIndex, total_hosts):
     return GameController(str(instanceIndex), f"http://localhost:8800/", True)
 
 def preprocess(images):
-    to_tensor = transforms.Compose([transforms.ToTensor()])
-    sequence = torch.cat([to_tensor(image.convert("L").resize((64,64))) for image in images]).unsqueeze(0)
+    # to_tensor = transforms.Compose([transforms.ToTensor()])
+    # sequence = torch.cat([to_tensor(image.convert("L").resize((64,64))) for image in images]).unsqueeze(0)
+    # return sequence
+    to_tensor = transforms.Compose([
+        transforms.Resize((64,64)),
+        transforms.ToTensor()
+    ])
+    sequence = torch.cat([to_tensor(image.convert("RGB")) for image in images]).unsqueeze(0)
     return sequence
 
 def find_move(model, frame, device):
@@ -49,7 +55,7 @@ def find_move(model, frame, device):
     # Return the corresponding move from the move map
     return move_map[int(pred_idx)]
 
-def game_player(index, model, total_hosts): # Do I need async here?
+def game_player(index, model, total_hosts, random, preset): # Do I need async here?
     model = model.to(torchDevice) # Send to GPU
 
     try:
@@ -72,6 +78,10 @@ def game_player(index, model, total_hosts): # Do I need async here?
                 return game.currentTick
 
             next_move = find_move(model, frame, torchDevice)
+            if random == True:
+                next_move = KEYS(np.random.randint(0, 3))
+            if preset == True:
+                next_move = KEYS.NONE
 
             game.keyup(next_move) # Keyup before next frame. So it remains held if keydown before next frame again
             time.sleep(0.05) # Do not get too fast
@@ -97,27 +107,46 @@ def evolution(models, model_creator):
         while find_model1 == find_model2:
             find_model2 = np.random.randint(0, len(models))
 
-        return crossover(models[find_model1], models[find_model2], model_creator)
+        return gaussian_noise(crossover(models[find_model1], models[find_model2], model_creator), 0.1, model_creator)
 
-
+def read_model(index, model_num):
+    return torch.load(f"./data_real_time/model_{model_num}_training/model_{index}.pt")
 
 
 torchDevice = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if __name__ == "__main__":
     x = 20
     x_save = 8
-    model_creator = create_model_small_0
-    models = [model_creator() for i in range(x)]
     run_count = 0
     total_hosts = 4 # How many hosts are running the game, starting from 3001, then 3002, 3003, 3004 ...
     print(f"Using {torchDevice} for pytorch")
     # Gathering data
-    data_types = ["random_moves", "small_1", "small_2", "small_2_newxsave", "small_1_newxsave", "small_0_newxsave"]
-    current_data_type = data_types[-1]
-    
+    # data_types = ["random_moves", "small_1", "small_2", "small_2_newxsave", "small_1_newxsave", "small_0_newxsave"]
+    data_types = ["random_moves", "model_1_training", "model_1_training_evo", "model_2_training", "model_3_training",
+                  "model_1_testing", "model_2_testing", "model_3_testing", "preset_moves"
+                  ]
+    current_data_type = data_types[-1] # data_types[-1]
+    model_creator = model_3
+    models = [model_creator() for i in range(x)]
+    testing = False
+    random = False
+    preset = True
+    model_num = 3
 
     while True:
-        data = load_data("data.json")
+        if testing == True:
+            models = []
+            while len(models) < x:
+                try:
+                    index = np.random.randint(0, 8) # To choose a random model from the stored
+                    print(index) 
+                    models.append(read_model(index, model_num))
+                    if len(models) == 5:
+                        print("Testing, using models, example:", f"data_real_time/model_{model_num}_training/model_{index}.pt")
+                except Exception as e:
+                    continue
+
+        data = load_data("data_real.json")
         if not current_data_type in list(data.keys()):
             data[current_data_type] = []
 
@@ -132,22 +161,27 @@ if __name__ == "__main__":
         with ThreadPoolExecutor(max_workers=x) as executor:
             futures = []
             for i in range(x):
-                futures.append(executor.submit(game_player, i, models[i], total_hosts))
+                futures.append(executor.submit(game_player, i, models[i], total_hosts, random, preset))
             for future in futures:
                 time_alive_lst.append(future.result())
         
         print(time_alive_lst)
         data[current_data_type].append(time_alive_lst) # Save time alive data
-        save_data(data, "data.json")
+        save_data(data, "data_real.json")
 
         print("Games are done")
+
+        
+        if testing == True or preset == True:
+            continue
+
         # Evolutionary strategy
         models = [models[i] for i in np.argsort(time_alive_lst)]
         models = models[-x_save:]
         print("Top models are saved", len(models))
         # Save
         for i, model in enumerate(models):
-            torch.save(model, f"model_{i}.pt")
+            torch.save(model, f"data_real_time/model_{i}.pt")
         print("Top models are saved", len(models))
         lst = models
         while len(lst) < x:

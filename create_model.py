@@ -4,81 +4,61 @@ import torch.nn as nn
 # Type stuff
 from torch.nn.modules.container import Sequential
 
-def create_model(channels=1):
+def model_1(channels=3):
     return nn.Sequential(
-        nn.Conv2d(channels, 16, kernel_size=3, stride=1, padding=1), # 64x64x1 -> 64x64x16
+        nn.Conv2d(channels, 20, kernel_size=5), # 64x64x3 -> 60x60x20
         nn.ReLU(),
-        nn.MaxPool2d(kernel_size=2), # 64x64x16 -> 32x32x16
+        nn.MaxPool2d(kernel_size=2), # 60x60x20 -> 30x30x20
 
-        nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1), # 32x32x16 -> 32x32x32
-        nn.ReLU(),
-        nn.MaxPool2d(kernel_size=2), # 32x32x32 -> 16x16x32
+        nn.Flatten(), # 30x30x20 -> 30*30*20
 
-        nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1), # 16x16x32 -> 16x16x64
-        nn.ReLU(),
-        nn.MaxPool2d(kernel_size=2), # 16x16x64 -> 8x8x64
-
-        nn.Flatten(), # 8x8x64 -> 64*8*8
-
-        nn.Linear(64*8*8, 500),
+        nn.Linear(30*30*20, 500),
         nn.ReLU(),
 
         nn.Linear(500, 3)
-        # Softmax?
     )
 
-def create_model_small_2(channels=1):
+def model_2(channels=3):
     return nn.Sequential(
-        nn.Conv2d(channels, 16, kernel_size=3, stride=1, padding=1), # 64x64x1 -> 64x64x16
+        nn.Conv2d(channels, 20, kernel_size=5), # 64x64x3 -> 60x60x20
         nn.ReLU(),
-        nn.MaxPool2d(kernel_size=2), # 64x64x16 -> 32x32x16
+        nn.MaxPool2d(kernel_size=2), # 60x60x20 -> 30x30x20
 
-        nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1), # 32x32x16 -> 32x32x32
+        nn.Conv2d(20, 50, kernel_size=5), # 30x30x20 -> 26x26x50
         nn.ReLU(),
-        nn.MaxPool2d(kernel_size=2), # 32x32x32 -> 16x16x32
+        nn.MaxPool2d(kernel_size=2), # 26x26x50 -> 13x13x50
 
-        nn.Flatten(), # 16x16x32 -> 32*16*16
+        nn.Flatten(), # 13x13x50 -> 13*13*50
 
-        nn.Linear(32*16*16, 500),
+        nn.Linear(13*13*50, 500),
         nn.ReLU(),
 
         nn.Linear(500, 3)
-        # Softmax?
     )
 
-def create_model_small_1(channels=1):
+def model_3(channels=3):
     return nn.Sequential(
-        nn.Conv2d(channels, 16, kernel_size=3, stride=1, padding=1), # 64x64x1 -> 64x64x16
+        nn.Conv2d(channels, 20, kernel_size=5), # 64x64x3 -> 60x60x20
         nn.ReLU(),
-        nn.MaxPool2d(kernel_size=2), # 64x64x16 -> 32x32x16
+        nn.MaxPool2d(kernel_size=2), # 60x60x20 -> 30x30x20
 
-        nn.Flatten(), # 32x32x16 -> 16*32*32
+        nn.Conv2d(20, 50, kernel_size=5), # 30x30x20 -> 26x26x50
+        nn.ReLU(),
+        nn.MaxPool2d(kernel_size=2), # 26x26x50 -> 13x13x50
 
-        nn.Linear(16*32*32, 500),
+        nn.Conv2d(50, 50, kernel_size=5), # 13x13x50 -> 9x9x50
+        nn.ReLU(),
+        nn.MaxPool2d(kernel_size=2), # 9x9x50 -> 4x4x50
+
+        nn.Flatten(), # 4x4x50 -> 4*4*50
+
+        nn.Linear(4*4*50, 500),
         nn.ReLU(),
 
         nn.Linear(500, 3)
-        # Softmax?
     )
 
-def create_model_small_0(channels=1):
-    return nn.Sequential(
-        nn.Conv2d(channels, 8, kernel_size=3, stride=1, padding=1), # 64x64x1 -> 64x64x8
-        nn.ReLU(),
-        nn.MaxPool2d(kernel_size=2), # 64x64x8 -> 32x32x8
-
-        nn.Flatten(), # 32x32x8 -> 8*32*32
-
-        nn.Linear(8*32*32, 500),
-        nn.ReLU(),
-
-        nn.Linear(500, 3)
-        # Softmax?
-    )
-
-
-
-def gaussian_noise(model: Sequential, sigma=0.001, model_creator=create_model) -> Sequential:
+def gaussian_noise(model: Sequential, sigma=0.001, model_creator=model_3) -> Sequential:
     """Takes a torch model and returns a mutated model made via the gaussian noise evolution strategy"""
 
     new_model = model_creator()
