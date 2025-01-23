@@ -18,7 +18,7 @@ fig = go.Figure()
 fig.add_trace(go.Surface(z=Z, x=X, y=Y, opacity=0.7, colorscale="peach"))
 
 # Scatter point
-colors = ["red", "orange", "yellow", "green", "blue"]
+colors = ["red", "orange", "yellow", "green"]
 n_points = 50
 center_x = 3
 center_y = 3
@@ -58,5 +58,16 @@ fig.add_trace(go.Scatter3d(x=center_x_log, y=center_y_log, z=f(np.array(center_x
 #         ),
 #     width=700,
 #     margin=dict(r=20, l=10, b=10, t=10))
+
+
+
+# Default parameters which are used when `layout.scene.camera` is not provided
+camera = dict(
+    up=dict(x=0, y=0, z=1),
+    center=dict(x=0, y=0, z=0),
+    eye=dict(x=0.2*1.5, y=1.25*1.5, z=0.8*1.5)
+)
+
+fig.update_layout(scene_camera=camera)
 
 fig.show()
