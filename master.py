@@ -77,13 +77,14 @@ def game_player(index, model, total_hosts, random, preset): # Do I need async he
                 # return game.getTimeAlive()
                 return game.currentTick
 
+
+            game.keyup(next_move) # Keyup before next frame. So it remains held if keydown before next frame again
+            
             next_move = find_move(model, frame, torchDevice)
             if random == True:
                 next_move = KEYS(np.random.randint(0, 3))
             if preset == True:
                 next_move = KEYS.NONE
-
-            game.keyup(next_move) # Keyup before next frame. So it remains held if keydown before next frame again
             time.sleep(0.05) # Do not get too fast
     except Exception as e:
         print("Error in game_player")
@@ -123,14 +124,14 @@ if __name__ == "__main__":
     # Gathering data
     # data_types = ["random_moves", "small_1", "small_2", "small_2_newxsave", "small_1_newxsave", "small_0_newxsave"]
     data_types = ["random_moves", "model_1_training", "model_1_training_evo", "model_2_training", "model_3_training",
-                  "model_1_testing", "model_2_testing", "model_3_testing", "preset_moves"
+                  "model_1_testing", "model_2_testing", "model_3_testing", "preset_moves", "picture", "model_3_training_extra"
                   ]
     current_data_type = data_types[-1] # data_types[-1]
     model_creator = model_3
     models = [model_creator() for i in range(x)]
     testing = False
     random = False
-    preset = True
+    preset = False
     model_num = 3
 
     while True:
